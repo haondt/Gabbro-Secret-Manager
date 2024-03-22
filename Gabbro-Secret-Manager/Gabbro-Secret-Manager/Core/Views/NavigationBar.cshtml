@@ -1,0 +1,25 @@
+﻿@model Gabbro_Secret_Manager.Core.Views.NavigationBarModel
+
+<ul class="flex flex-row gap-20" id="navigationBar">
+    @foreach (var pageName in Model.Pages)
+    {
+        <li class='@((pageName == Model.CurrentPage) ? "selected" : "")'>
+            <div hx-trigger="onNavigate from:next button"
+                hx-target="#content"
+                hx-push-url="/@pageName.ToString().ToLower()"
+                hx-get="/partials/@pageName.ToString()"
+                hx-swap="innerHTML transition:true"
+                ></div>
+            <div 
+                hx-trigger="onNavigate from:next button"
+                hx-target="#navigationBar"
+                hx-get="/partials/navigationbar"
+                hx-vals='{"currentView": "@pageName.ToString()"}'
+                ></div>
+            <button 
+                class="navigation loading" 
+                _="on click trigger onNavigate end on load debounced at 150ms remove .loading"
+                >@pageName.ToString().ToLower()</button>
+        </li>
+    }
+</ul>

@@ -7,9 +7,5 @@ namespace Gabbro_Secret_Manager.Controllers
     [Produces("text/html")]
     public class BaseController : Controller
     {
-        protected ViewResult View(IViewModel model)
-        {
-            return View(model.ViewPath, model);
-        }
     }
 }

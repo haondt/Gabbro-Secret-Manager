@@ -8,3 +8,44 @@
     font-style: normal;
 }
 
+body {
+    background-color: var(--color-dark-bg);
+    color: var(--color-bright-fg);
+    min-width: 320px;
+}
+
+button {
+    background-color: var(--color-dark-bg);
+    color: var(--color-dark-fg);
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    border-radius: 8px;
+    border: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-weight: bold;
+}
+
+button:hover:not(:disabled).positive {
+    color: var(--color-positive);
+}
+
+button:hover:not(:disabled).negative {
+    color: var(--color-negative);
+}
+
+
+button:not(:disabled) {
+    cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+    color: var(--color-accent);
+    background-color: var(--color-bright-bg);
+}
+
+
+.form-error {
+    color: var(--color-negative);
+}

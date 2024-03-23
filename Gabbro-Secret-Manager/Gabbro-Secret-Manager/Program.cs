@@ -17,7 +17,8 @@ builder.Services.AddCors(o => o.AddPolicy(CORS_POLICY, p =>
 builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddCoreServices(builder.Configuration)
-    .RegisterPages();
+    .RegisterPages()
+    .RegisterPartialPages();
 
 var app = builder.Build();
 app.UseStaticFiles();

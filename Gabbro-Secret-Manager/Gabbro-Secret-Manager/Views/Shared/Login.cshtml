@@ -1,3 +1,24 @@
 ﻿@model Gabbro_Secret_Manager.Views.Shared.LoginModel
+<div class="page flex flex-col align-center" id="loginPage">
+    <div class="card flex flex-col align-center" style="width: 250px">
+        <form class="flex flex-col gap-15" hx-post="/actions/login" hx-target="#loginPage" hx-swap="outerHTML">
+            <div class="flex flex-col gap-5">
+                <input id="username" type="username" name="username" class="fs-18" value="@(Model.Username ?? "")"/>
+                <div>username</div>
+            </div>
+            <div class="flex flex-col gap-5">
+                <input id="password" type="password" name="password" class="fs-18" value="@(Model.Password ?? "")"/>
+                <div>password</div>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.Error))
+            {
+                <div class="form-error">@Model.Error</div>
+            }
+            <div class="flex flex-row j-between">
+                <button class="positive" type="submit">Log In</button>
+                <button hx-get="/partials/register" hx-target="#loginPage" hx-swap="outerHTML" hx-push-url="/register">Create Account</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-<span>Welcome to login!</span>

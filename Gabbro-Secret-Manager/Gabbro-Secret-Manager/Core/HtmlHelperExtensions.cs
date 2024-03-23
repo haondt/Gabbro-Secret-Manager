@@ -9,5 +9,5 @@ namespace Gabbro_Secret_Manager.Core
         {
             return html.PartialAsync(content.ViewPath, content.Model);
         }
-    }
+   }
 }

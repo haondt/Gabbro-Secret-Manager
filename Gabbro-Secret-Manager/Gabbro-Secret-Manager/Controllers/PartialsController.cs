@@ -6,15 +6,23 @@ using Gabbro_Secret_Manager.Core.Views;
 namespace Gabbro_Secret_Manager.Controllers
 {
     [Route("partials")]
-    public class PartialsController(PageRegistry pageRegistry) : BaseController
+    public class PartialsController(PageRegistry pageRegistry, UserService userService) : BaseController
     {
         [HttpGet("{page}")]
-        public IActionResult GetView([FromRoute] string page)
+        public async Task<IActionResult> GetView([FromRoute] string page)
         {
-            if (pageRegistry.TryGetPage(page, out var pageRegistryEntry)
-                && pageRegistryEntry!.Type == PageEntryType.Partial)
-                return View(pageRegistryEntry!.Create(Request.RouteValues));
-            return NotFound();
+            if (!pageRegistry.TryGetPartialPage(page, out var pageRegistryEntry)
+                 || pageRegistryEntry!.Type != PageEntryType.Partial)
+                return NotFound();
+
+            if (pageRegistryEntry.RequiresAuthentication)
+            {
+                if (await Request.AsRequestData().IsAuthenticated(userService) is not (true, _))
+                    return NotFound();
+            }
+
+            var pageEntry = pageRegistryEntry.Create(Request.AsRequestData());
+            return View(pageEntry.ViewPath, pageEntry.Model);
         }
     }
 }

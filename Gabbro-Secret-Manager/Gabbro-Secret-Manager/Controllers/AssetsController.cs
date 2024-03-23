@@ -5,11 +5,10 @@ using Microsoft.AspNetCore.StaticFiles;
 namespace Gabbro_Secret_Manager.Controllers
 {
     [Route("assets")]
-    [ApiController]
     public class AssetsController(
         AssetProvider assetProvider,
         StylesProvider stylesProvider,
-        FileExtensionContentTypeProvider contentTypeProvider) : Controller
+        FileExtensionContentTypeProvider contentTypeProvider) : BaseController
     {
 
         [Route("{**assetPath}")]

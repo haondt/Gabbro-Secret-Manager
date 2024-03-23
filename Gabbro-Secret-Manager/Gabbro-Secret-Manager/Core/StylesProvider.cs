@@ -19,6 +19,8 @@ namespace Gabbro_Secret_Manager.Core
                 $"    --color-dark-fg: {_colorSettings.DarkForeground};",
                 $"    --color-bright-fg: {_colorSettings.BrightForeground};",
                 $"    --color-accent: {_colorSettings.Accent};",
+                $"    --color-negative: {_colorSettings.Negative};",
+                $"    --color-positive: {_colorSettings.Positive};",
             });
             colorsCss += "\n}\n";
 
@@ -27,8 +29,8 @@ namespace Gabbro_Secret_Manager.Core
 
             return string.Join('\n', new List<string>
             {
-                baseCss,
                 colorsCss,
+                baseCss,
                 customCss
             });
         }

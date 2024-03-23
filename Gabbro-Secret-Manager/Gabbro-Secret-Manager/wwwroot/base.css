@@ -11,17 +11,33 @@ table, caption, tbody, tfoot, thead, tr, th, td,
 article, aside, canvas, details, embed, 
 figure, figcaption, footer, header, hgroup, 
 menu, nav, output, ruby, section, summary,
-time, mark, audio, video, button {
+time, mark, audio, video, button, input {
 	margin: 0;
 	padding: 0;
 	border: 0;
 	font-size: 100%;
 	font: inherit;
 	vertical-align: baseline;
+	outline: none;
 }
 
 ul {
 	list-style-type: none;
+}
+
+input {
+	background: none;
+	border: none;
+	border-bottom: 1px solid var(--color-dark-fg);
+	color: var(--color-bright-fg);
+	padding: 5px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+input:focus-visible {
+	border: none;
+	border-bottom: 1px solid var(--color-accent);
 }
 
 .flex { display: flex; }
@@ -102,5 +118,17 @@ span.spacer { flex: 1 0 auto; }
 
 .display-none { display: none; }
 
-.justify-center { justify-content: center; }
-.justify-evenly { justify-content: space-evenly; }
+.j-center { justify-content: center; }
+.j-evenly { justify-content: space-evenly; }
+.j-between { justify-content: space-between; }
+
+h1 {
+    font-size: 2.5rem;
+}
+h2 {
+    font-size: 1.75rem;
+}
+p {
+    font-size: 1.15rem;
+
+}

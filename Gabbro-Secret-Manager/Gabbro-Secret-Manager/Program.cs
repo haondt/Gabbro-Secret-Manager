@@ -17,6 +17,7 @@ builder.Services.AddCors(o => o.AddPolicy(CORS_POLICY, p =>
 builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddCoreServices(builder.Configuration)
+    .AddGabbroServices(builder.Configuration)
     .RegisterPages()
     .RegisterPartialPages();
 

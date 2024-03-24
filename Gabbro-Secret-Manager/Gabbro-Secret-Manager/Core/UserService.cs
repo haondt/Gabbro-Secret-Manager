@@ -37,7 +37,7 @@ namespace Gabbro_Secret_Manager.Core
                 return (false, usernameReason, "", default);
             }
 
-            var (salt, hash) = crypto.Hash(password);
+            var (salt, hash) = crypto.HashPassword(password);
             var user = new User
             {
                 Username = username,
@@ -60,7 +60,7 @@ namespace Gabbro_Secret_Manager.Core
             if (!foundUser)
                 return (false, "", default);
 
-            var foundHash = crypto.Hash(password, user!.PasswordSalt);
+            var foundHash = crypto.HashPassword(password, user!.PasswordSalt);
             if (!foundHash.Equals(user.PasswordHash)) 
                 return (false, "", default);
 
@@ -104,6 +104,26 @@ namespace Gabbro_Secret_Manager.Core
             return Enumerable.Range(0, paranoia)
                 .Select(_ => Guid.NewGuid().ToString())
                 .Aggregate((a, b) => a + b);
+        }
+
+        public async Task<UserSession> GetSession(string sessionToken)
+        {
+            var sessionKey = sessionToken.GetStorageKey<UserSession>();
+            var (foundSession, session) = await storage.TryGet<UserSession>(sessionKey);
+            if (!foundSession)
+                throw new KeyNotFoundException(sessionToken);
+
+            if (session!.Expiry < DateTime.UtcNow)
+            {
+                try
+                {
+                    await storage.Delete(sessionKey);
+                }
+                catch { }
+                throw new InvalidOperationException(sessionToken);
+            }
+
+            return session;
         }
 
         public Task EndSession(string sessionToken)

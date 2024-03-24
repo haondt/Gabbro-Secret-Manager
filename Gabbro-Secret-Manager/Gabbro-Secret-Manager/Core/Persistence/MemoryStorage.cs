@@ -2,7 +2,7 @@
 {
     public class MemoryStorage : IStorage
     {
-        private readonly Dictionary<string, object> _storage = [];
+        protected readonly Dictionary<string, object> _storage = [];
 
         public Task<bool> ContainsKey(string key) => Task.FromResult(_storage.ContainsKey(key));
         public Task Delete(string key)

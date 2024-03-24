@@ -6,29 +6,28 @@ namespace Gabbro_Secret_Manager.Core
 {
     public class CryptoService
     {
-        private const int SaltSize = 16; // 16 bytes for the salt
-        private const int HashSize = 20; // 20 bytes for the hash
-        private const int Iterations = 10000; // Number of iterations for the PBKDF2 algorithm
+        private const int _saltSize = 16; // 16 bytes for the salt
+        private const int _iterations = 10000; // Number of iterations for the PBKDF2 algorithm
 
-        public (string Salt, string Hash) Hash(string password)
+        public (string Salt, string Hash) HashPassword(string password)
         {
-            byte[] salt = GenerateSalt();
-            byte[] hash = GenerateHash(password, salt);
+            byte[] salt = GenerateSalt(_saltSize);
+            byte[] hash = GenerateHash(password, salt, _iterations);
 
             return (
                 Convert.ToBase64String(salt),
                 Convert.ToBase64String(hash));
         }
 
-        public string Hash(string password, string salt)
+        public string HashPassword(string password, string salt)
         {
-            var hash = GenerateHash(password, Convert.FromBase64String(salt));
+            var hash = GenerateHash(password, Convert.FromBase64String(salt), _iterations);
             return Convert.ToBase64String(hash);
         }
 
-        private static byte[] GenerateSalt()
+        public static byte[] GenerateSalt(int saltSize)
         {
-            byte[] salt = new byte[SaltSize];
+            byte[] salt = new byte[saltSize];
             using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(salt);
@@ -36,10 +35,54 @@ namespace Gabbro_Secret_Manager.Core
             return salt;
         }
 
-        private static byte[] GenerateHash(string password, byte[] salt)
+        public static byte[] GenerateHash(string input, byte[] salt, int iterations)
         {
-            using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256);
-            return pbkdf2.GetBytes(HashSize);
+
+            return Rfc2898DeriveBytes.Pbkdf2(input, salt, iterations, HashAlgorithmName.SHA256, 256);
         }
+        public static byte[] GenerateHash(string input)
+        {
+            return SHA256.HashData(Encoding.UTF8.GetBytes(input));
+        }
+
+        public static (string EncryptedValue, string InitializationVector) Encrypt(string input, byte[] key)
+        {
+            using Aes aesAlg = Aes.Create();
+            aesAlg.Key = key;
+            aesAlg.GenerateIV();
+
+            ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+
+            using var msEncrypt = new MemoryStream();
+            using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+            {
+                using var swEncrypt = new StreamWriter(csEncrypt);
+                swEncrypt.Write(input);
+            }
+
+            return (
+                Convert.ToBase64String(msEncrypt.ToArray()),
+                Convert.ToBase64String(aesAlg.IV));
+        }
+
+        public static string Decrypt(string input, byte[] key, string initializationVector)
+        {
+            using Aes aesAlg = Aes.Create();
+            aesAlg.Key = key;
+            aesAlg.IV = Convert.FromBase64String(initializationVector);
+
+            ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+
+            using var msEncrypt = new MemoryStream();
+            using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+            {
+                using var swEncrypt = new StreamWriter(csEncrypt);
+                swEncrypt.Write(input);
+            }
+
+            return Convert.ToBase64String(msEncrypt.ToArray());
+        }
+
+
     }
 }

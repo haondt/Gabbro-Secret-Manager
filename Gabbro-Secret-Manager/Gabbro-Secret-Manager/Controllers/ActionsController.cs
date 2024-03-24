@@ -1,5 +1,6 @@
 ﻿using Gabbro_Secret_Manager.Core;
 using Gabbro_Secret_Manager.Domain;
+using Gabbro_Secret_Manager.Domain.Services;
 using Gabbro_Secret_Manager.Views.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -7,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Gabbro_Secret_Manager.Controllers
 {
     [Route("actions")]
-    public class ActionsController(UserService userService, PageRegistry pageRegistry, IOptions<IndexSettings> indexOptions) : BaseController
+    public class ActionsController(UserService userService, PageRegistry pageRegistry, IOptions<IndexSettings> indexOptions, EncryptionKeyService encryptionKeyService) : BaseController
     {
 
         [HttpPost("login")]
@@ -18,6 +19,8 @@ namespace Gabbro_Secret_Manager.Controllers
             var (result, sessionToken, sessionExpiry) = await userService.TryAuthenticateUser(username, password);
             if (result)
             {
+                await encryptionKeyService.GetOrCreateEncryptionKey(sessionToken, password);
+
                 Response.Cookies.AddAuthentication(sessionToken, sessionExpiry);
                 Response.Headers["HX-Replace-Url"] = $"/{indexOptions.Value.HomePage}";
                 return this.GetPartialPageView(indexOptions.Value.HomePage, pageRegistry);

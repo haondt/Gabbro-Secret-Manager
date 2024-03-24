@@ -24,17 +24,17 @@ namespace Gabbro_Secret_Manager.Core
             return isValid;
         }
 
-        public async Task<(bool Success, string UsernameReason, string PasswordReason, User? user)> TryRegisterUser(string username, string password)
+        public async Task<(bool Success, string UsernameReason, string PasswordReason, User? user, string userKey)> TryRegisterUser(string username, string password)
         {
             if (!ValidateCredentials(username, password, out var usernameReason, out var passwordReason))
-                return (false, usernameReason, passwordReason, default);
+                return (false, usernameReason, passwordReason, default, "");
 
             var userKey = username.ToLower().Trim().GetStorageKey<User>();
 
             if (await storage.ContainsKey(userKey))
             {
                 usernameReason = "Username not available";
-                return (false, usernameReason, "", default);
+                return (false, usernameReason, "", default, "");
             }
 
             var (salt, hash) = crypto.HashPassword(password);
@@ -46,7 +46,7 @@ namespace Gabbro_Secret_Manager.Core
             };
 
             await storage.Set(userKey, user);
-            return (true, "", "", user);
+            return (true, "", "", user, userKey);
         }
 
         public async Task<(bool Success, string sessionToken, DateTime expiry)> TryAuthenticateUser(string username, string password)

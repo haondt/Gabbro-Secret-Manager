@@ -8,7 +8,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
     public class UserDataService(IGabbroStorageService storageService, IOptions<EncryptionKeyServiceSettings> encryptionKeyOptions)
     {
         private const int _saltSize = 16; // 16 bytes for the salt
-        public async Task<UserData> UpsertUserData(string userKey)
+        public async Task<UserData> InitializeUserData(string userKey)
         {
             var userDataKey = userKey.GetStorageKey<UserData>();
             var userData = new UserData
@@ -26,7 +26,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
 
         public Task<UserData> GetUserData(string userKey)
         {
-            return storageService.Get<UserData>(userKey);
+            return storageService.Get<UserData>(userKey.GetStorageKey<UserData>());
         }
     }
 }

@@ -2,7 +2,7 @@
 {
     public class Secret
     {
-        public List<string> Tags { get; set; } = [];
+        public HashSet<string> Tags { get; set; } = [];
         public required string Name { get; set; }
         public required string EncryptedValue { get; set; }
         public required string Owner { get; set; }

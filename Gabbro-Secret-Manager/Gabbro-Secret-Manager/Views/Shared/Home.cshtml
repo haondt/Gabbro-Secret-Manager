@@ -1,3 +1,13 @@
 ﻿@model Gabbro_Secret_Manager.Views.Shared.HomeModel
+<div class="page flex flex-col align-center" id="loginPage">
+    <div class="card flex flex-col align-center">
+        <div class="flex flex-row">
+            <input type="text" name="search" placeholder="Search" />
+            @await Html.PartialAsync("TagSelect", Model.CreateTagSelectModel())
+        </div>
+        <div>
+            Content!
+        </div>
+    </div>
+</div>
 
-<span>Welcome to Home!</span>

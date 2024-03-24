@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Gabbro_Secret_Manager.Controllers
 {
     [Route("actions")]
-    public class ActionsController(UserService userService, PageRegistry pageRegistry, IOptions<IndexSettings> indexOptions, EncryptionKeyService encryptionKeyService) : BaseController
+    public class ActionsController(UserService userService, UserDataService userDataService, PageRegistry pageRegistry, IOptions<IndexSettings> indexOptions, EncryptionKeyService encryptionKeyService) : BaseController
     {
 
         [HttpPost("login")]
@@ -53,9 +53,10 @@ namespace Gabbro_Secret_Manager.Controllers
         {
             username ??= "";
             password ??= "";
-            var (result, usernameReason, passwordReason, _) = await userService.TryRegisterUser(username, password);
+            var (result, usernameReason, passwordReason, _, userKey) = await userService.TryRegisterUser(username, password);
             if (result)
             {
+                await userDataService.InitializeUserData(userKey);
                 Response.Headers["HX-Replace-Url"] = $"/{indexOptions.Value.AuthenticationPage}";
                 return this.GetPartialPageView(indexOptions.Value.AuthenticationPage, pageRegistry);
             }

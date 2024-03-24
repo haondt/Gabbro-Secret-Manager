@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Gabbro_Secret_Manager.Domain.Services
 {
-    public class EncryptionKeyService(IOptions<EncryptionKeyServiceSettings> options, UserDataService userDataService)
+    public class EncryptionKeyService(IOptions<EncryptionKeyServiceSettings> options, UserService userService, UserDataService userDataService)
     {
         private readonly Dictionary<string, byte[]> _keys = new();
         private readonly Queue<string> _keyQueue = new();
@@ -16,8 +16,9 @@ namespace Gabbro_Secret_Manager.Domain.Services
 
         private async Task<byte[]> GenerateEncryptionKey(string sessionToken, string password)
         {
-            var userData = await userDataService.GetUserData(sessionToken);
-            var uHash = CryptoService.GenerateHash(userData.UserKey);
+            var userSession = await userService.GetSession(sessionToken);
+            var userData = await userDataService.GetUserData(userSession.UserKey);
+            var uHash = CryptoService.GenerateHash(userSession.UserKey);
             var pHash = CryptoService.GenerateHash(password);
             var keyBytes = CryptoService.GenerateHash(
                 Convert.ToBase64String(uHash.Concat(pHash).ToArray()),

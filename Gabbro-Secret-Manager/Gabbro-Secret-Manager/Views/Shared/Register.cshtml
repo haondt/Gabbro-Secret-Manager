@@ -1,9 +1,9 @@
 ﻿@model Gabbro_Secret_Manager.Views.Shared.RegisterModel
 <div class="page flex flex-col align-center" id="registerPage">
-    <div class="card flex flex-col align-center" style="width: 250px">
+    <div class="flex flex-col align-center" style="width: 250px">
         <form class="flex flex-col gap-15" hx-post="/actions/register" hx-target="#registerPage" hx-swap="outerHTML">
             <div class="flex flex-col gap-5">
-                <input id="username"  name="username" type="text" class="fs-18 show-hover" value="@(Model.Username ?? "")"/>
+                <input id="username"  name="username" autocomplete="username" type="text" class="fs-18 show-hover" value="@(Model.Username ?? "")"/>
                 @if (!string.IsNullOrEmpty(Model.UsernameError))
                 {
                     <div class="form-error">@Model.UsernameError</div>
@@ -14,7 +14,7 @@
                 }
             </div>
             <div class="flex flex-col gap-5">
-                <input id="password" type="password" name="password" class="fs-18" value="@(Model.Password ?? "")"/>
+                <input id="password" type="password" autocomplete="new-password" name="password" class="fs-18" value="@(Model.Password ?? "")"/>
                 @if (!string.IsNullOrEmpty(Model.PasswordError))
                 {
                     <div class="form-error">@Model.PasswordError</div>

@@ -12,10 +12,14 @@ namespace Gabbro_Secret_Manager.Domain
         {
             services.Configure<EncryptionKeyServiceSettings>(configuration.GetSection(nameof(EncryptionKeyServiceSettings)));
             services.AddSingleton<EncryptionKeyService>();
-            services.AddSingleton<IGabbroStorage, MemoryGabbroStorage>();
             services.AddSingleton<IGabbroStorageService, GabbroStorageService>();
+            services.AddSingleton<IStorage>(sp => sp.GetRequiredService<IGabbroStorage>());
+            services.AddSingleton<IGabbroStorage, FileGabbroStorage>();
+            services.AddSingleton<IStorageService>(sp => sp.GetRequiredService<IGabbroStorageService>());
             services.AddSingleton<SecretService>();
             services.AddSingleton<UserDataService>();
+            services.AddScoped<ILifetimeHook, LoginHook>();
+            services.AddScoped<ILifetimeHook, RegisterHook>();
             
 
            return services;
@@ -23,18 +27,10 @@ namespace Gabbro_Secret_Manager.Domain
 
         public static IServiceCollection RegisterPages(this IServiceCollection services)
         {
-            services.RegisterPage("home", "Home", _ => new HomeModel());
-            services.RegisterPage("login", "Login", _ => new LoginModel(), false);
-            services.RegisterPage("register", "Register", _ => new RegisterModel(), false);
+            services.AddScoped<IPageEntryFactory, HomePageEntryFactory>();
 
             return services;
         }
-        public static IServiceCollection RegisterPartialPages(this IServiceCollection services)
-        {
-            services.RegisterPartialPage("home", "Home", _ => new HomeModel());
-            services.RegisterPartialPage("login", "Login", _ => new LoginModel(), false);
-            services.RegisterPartialPage("register", "Register", _ => new RegisterModel(), false);
-            return services;
-        }
+
     }
 }

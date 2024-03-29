@@ -18,8 +18,7 @@ builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddCoreServices(builder.Configuration)
     .AddGabbroServices(builder.Configuration)
-    .RegisterPages()
-    .RegisterPartialPages();
+    .RegisterPages();
 
 var app = builder.Build();
 app.UseStaticFiles();

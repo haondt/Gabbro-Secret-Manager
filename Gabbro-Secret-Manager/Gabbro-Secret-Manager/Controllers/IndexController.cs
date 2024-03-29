@@ -2,52 +2,35 @@
 using Microsoft.Extensions.Options;
 using Gabbro_Secret_Manager.Core;
 using Gabbro_Secret_Manager.Core.Views;
-using Microsoft.Extensions.Primitives;
-using Gabbro_Secret_Manager.Domain;
 
 namespace Gabbro_Secret_Manager.Controllers
 {
     public class IndexController(
         IOptions<IndexSettings> options,
         PageRegistry pageRegistry,
-        UserService userService) : BaseController
+        ISessionService sessionService) : BaseController(pageRegistry, options, sessionService)
     {
+        private readonly IndexSettings _indexSettings = options.Value;
+        private readonly PageRegistry _pageRegistry = pageRegistry;
 
         [Route("/")]
         public Task<IActionResult> Redirect()
         {
-            return Get(null);
+            return Get(_indexSettings.HomePage);
         }
 
+
         [Route("{page}")]
-        public async Task<IActionResult> Get([FromRoute] string? page)
+        public async Task<IActionResult> Get([FromRoute] string page)
         {
-            var existingPage = page ?? options.Value.HomePage;
-            if (!pageRegistry.TryGetPage(existingPage, out var pageEntry)
-                || pageEntry!.Type != PageEntryType.Page)
-                if (!pageRegistry.TryGetPage(options.Value.HomePage, out pageEntry)
-                    || pageEntry!.Type != PageEntryType.Page)
-                    throw new InvalidOperationException("No home page registered");
-
-            if (pageEntry.RequiresAuthentication)
-            {
-                if (await Request.AsRequestData().IsAuthenticated(userService) is not (true, _))
-                    if (!pageRegistry.TryGetPage(options.Value.AuthenticationPage, out pageEntry)
-                        || pageEntry!.Type != PageEntryType.Page)
-                    throw new InvalidOperationException("No authentication page registered");
-            }
-
-            return View("~/Core/Views/Index.cshtml",
-                new IndexModel
+            var loader = await _pageRegistry.GetPageFactory("loader").Create(new LoaderModel { Location = $"/partials/{page}" });
+            var index = await _pageRegistry.GetPageFactory("index").Create(new IndexModel
                 {
-                    NavigationBar = pageRegistry.GetPartialPage("navigationBar").Create(new NavigationBarModel
-                    {
-                        CurrentPage = existingPage,
-                        Pages = options.Value.NavigationBarPages
-                    }),
-                    Title = options.Value.SiteName,
-                    Content = pageEntry!.Create(Request.AsRequestData())
+                    NavigationBar = await _pageRegistry.GetPageFactory("navigationBar").Create(new NavigationBarModel()),
+                    Title = _indexSettings.SiteName,
+                    Content = loader
                 });
+            return View(index.ViewPath, index.Model);
         }
     }
 }

@@ -1,14 +1,18 @@
 ﻿using Gabbro_Secret_Manager.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Options;
 
 namespace Gabbro_Secret_Manager.Controllers
 {
     [Route("assets")]
     public class AssetsController(
+        PageRegistry pageRegistry,
+        IOptions<IndexSettings> options,
+        ISessionService sessionService,
         AssetProvider assetProvider,
         StylesProvider stylesProvider,
-        FileExtensionContentTypeProvider contentTypeProvider) : BaseController
+        FileExtensionContentTypeProvider contentTypeProvider) : BaseController(pageRegistry, options, sessionService)
     {
 
         [Route("{**assetPath}")]

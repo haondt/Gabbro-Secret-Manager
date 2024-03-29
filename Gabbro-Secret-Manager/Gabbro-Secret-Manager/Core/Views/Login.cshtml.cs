@@ -1,4 +1,4 @@
-namespace Gabbro_Secret_Manager.Views.Shared
+namespace Gabbro_Secret_Manager.Core.Views
 {
     public class LoginModel
     {

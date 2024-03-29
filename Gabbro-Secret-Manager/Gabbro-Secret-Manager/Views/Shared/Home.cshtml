@@ -1,13 +1,19 @@
 ﻿@model Gabbro_Secret_Manager.Views.Shared.HomeModel
-<div class="page flex flex-col align-center" id="loginPage">
-    <div class="card flex flex-col align-center">
-        <div class="flex flex-row">
-            <input type="text" name="search" placeholder="Search" />
-            @await Html.PartialAsync("TagSelect", Model.CreateTagSelectModel())
-        </div>
-        <div>
-            Content!
-        </div>
-    </div>
+<div class="page flex flex-col align-center">
+    @if (Model.ShouldReRequestPassword)
+    {
+        @await Html.PartialAsync("PasswordReentryForm", new Gabbro_Secret_Manager.Views.Shared.PasswordReentryFormModel());
+    }
+    else if (Model.Secrets != null)
+    {
+        <form class="card flex flex-col align-center">
+            <div class="flex flex-row">
+                <input type="text" name="search" _="on keyup send secretsFilterUpdate" placeholder="Search" value="@Model.SearchString"/>
+                @await Html.PartialAsync("TagSelect", Model.Secrets.CreateTagSelectModel())
+                <button>Save Changes</button>
+            </div>
+            @await Html.PartialAsync("SecretList", Model.Secrets)
+        </form>
+    }
 </div>
 

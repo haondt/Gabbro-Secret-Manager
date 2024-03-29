@@ -1,24 +1,12 @@
 ﻿namespace Gabbro_Secret_Manager.Core
 {
-    public class PageRegistry
+    public class PageRegistry(IEnumerable<IPageEntryFactory> pageEntryFactories)
     {
-        private readonly IReadOnlyDictionary<string, PageRegistryEntry> _pages;
-        private readonly IReadOnlyDictionary<string, PageRegistryEntry> _partials;
+        private readonly IReadOnlyDictionary<string, IPageEntryFactory> _pageFactories = pageEntryFactories
+                .GroupBy(f => f.Page, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(grp => grp.Key, grp => grp.Last(), StringComparer.OrdinalIgnoreCase);
 
-        public PageRegistry(IEnumerable<PageRegistryEntry> pageEntries)
-        {
-
-            _pages = pageEntries
-                .Where(p => p.Type == PageEntryType.Page)
-                .ToDictionary(p => p.Page, p => p, StringComparer.OrdinalIgnoreCase);
-            _partials = pageEntries
-                .Where(p => p.Type == PageEntryType.Partial)
-                .ToDictionary(p => p.Page, p => p, StringComparer.OrdinalIgnoreCase);
-        }
-
-        public bool TryGetPage(string page, out PageRegistryEntry? entry) => _pages.TryGetValue(page, out entry);
-        public PageRegistryEntry GetPage(string page) => _pages[page];
-        public bool TryGetPartialPage(string page, out PageRegistryEntry? entry) => _partials.TryGetValue(page, out entry);
-        public PageRegistryEntry GetPartialPage(string page) => _partials[page];
+        public bool TryGetPageFactory(string page, out IPageEntryFactory? entry) => _pageFactories.TryGetValue(page, out entry);
+        public IPageEntryFactory GetPageFactory(string page) => _pageFactories[page];
     }
 }

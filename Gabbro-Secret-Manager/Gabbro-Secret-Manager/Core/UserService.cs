@@ -49,20 +49,20 @@ namespace Gabbro_Secret_Manager.Core
             return (true, "", "", user, userKey);
         }
 
-        public async Task<(bool Success, string sessionToken, DateTime expiry)> TryAuthenticateUser(string username, string password)
+        public async Task<(bool Success, string sessionToken, DateTime expiry, string userKey)> TryAuthenticateUser(string username, string password)
         {
             if (!ValidateCredentials(username, password, out _, out _))
-                return (false, "", default);
+                return (false, "", default, "");
 
             var userKey = username.ToLower().Trim().GetStorageKey<User>();
 
             var (foundUser, user) = await storage.TryGet<User>(userKey);
             if (!foundUser)
-                return (false, "", default);
+                return (false, "", default, "");
 
             var foundHash = crypto.HashPassword(password, user!.PasswordSalt);
             if (!foundHash.Equals(user.PasswordHash)) 
-                return (false, "", default);
+                return (false, "", default, "");
 
             var sessionToken = GenerateSessionToken();
             var sessionKey = sessionToken.GetStorageKey<UserSession>();
@@ -75,27 +75,7 @@ namespace Gabbro_Secret_Manager.Core
                 UserKey = userKey
             });
             await storage.Set(userKey, user);
-            return (true, sessionToken, sessionExpiry);
-        }
-
-        public async Task<(bool Success, string? UserKey)> TryAuthenticateUser(string sessionToken)
-        {
-            var sessionKey = sessionToken.GetStorageKey<UserSession>();
-            var (foundSession, session) = await storage.TryGet<UserSession>(sessionKey);
-            if (!foundSession)
-                return (false, default);
-
-            if (session!.Expiry < DateTime.UtcNow)
-            {
-                try
-                {
-                    await storage.Delete(sessionKey);
-                }
-                catch { }
-                return (false, default);
-            }
-
-            return (true, session!.UserKey);
+            return (true, sessionToken, sessionExpiry, userKey);
         }
 
         private string GenerateSessionToken()
@@ -124,6 +104,34 @@ namespace Gabbro_Secret_Manager.Core
             }
 
             return session;
+        }
+
+        public async Task<User> GetUser(string userKey)
+        {
+            var (foundUser, user) = await storage.TryGet<User>(userKey);
+            if (!foundUser)
+                throw new KeyNotFoundException(userKey);
+            return user!;
+        }
+
+        public async Task<(bool Success, UserSession? Session)> TryGetSession(string sessionToken)
+        {
+            var sessionKey = sessionToken.GetStorageKey<UserSession>();
+            var (foundSession, session) = await storage.TryGet<UserSession>(sessionKey);
+            if (!foundSession)
+                return (false, default);
+
+            if (session!.Expiry < DateTime.UtcNow)
+            {
+                try
+                {
+                    await storage.Delete(sessionKey);
+                }
+                catch { }
+                return (false, default);
+            }
+
+            return (true, session!);
         }
 
         public Task EndSession(string sessionToken)

@@ -4,18 +4,9 @@ using Gabbro_Secret_Manager.Domain.Persistence;
 
 namespace Gabbro_Secret_Manager.Domain.Services
 {
-    public class SecretService(IGabbroStorageService storage, UserService userService, EncryptionKeyService encryptionKeyService)
+    public class SecretService(IGabbroStorageService storage)
     {
-        public async Task<string> GetSecret(string sessionToken, string key)
-        {
-            var session = await userService.GetSession(sessionToken);
-            var encryptionKey = encryptionKeyService.Get(sessionToken);
-            return await GetSecret(encryptionKey, session.UserKey, key);
-        }
-
-        public Task<string> GetSecret(string encryptionKey, string userKey, string key) => GetSecret(
-            Convert.FromBase64String(encryptionKey), userKey, key);
-        public async Task<string> GetSecret(byte[] encryptionKey, string userKey, string key)
+        public async Task<(string Value, HashSet<string> Tags)> GetSecret(byte[] encryptionKey, string userKey, string key)
         {
             var secretKey = userKey + "___" + key.GetStorageKey<string>();
             var secret = await storage.Get<Secret>(secretKey);
@@ -23,37 +14,32 @@ namespace Gabbro_Secret_Manager.Domain.Services
                 secret.EncryptedValue,
                 encryptionKey,
                 secret.InitializationVector);
-            return decryptedValue;
+            return (decryptedValue, secret.Tags);
         }
 
-        public async Task UpsertSecret(string sessionToken, string key, string value)
+        public async Task UpsertSecret(byte[] encryptionKey, string userKey, string key, string value)
         {
-            var session = await userService.GetSession(sessionToken);
-            var secretKey = session.UserKey + "___" + key.GetStorageKey<string>();
-            var encryptionKey = encryptionKeyService.Get(sessionToken);
+            var secretKey = userKey + "___" + key.GetStorageKey<string>();
             var (encryptedValue, initializationVector) = CryptoService.Encrypt(value, encryptionKey);
             var secret = new Secret
             {
                 EncryptedValue = encryptedValue,
                 InitializationVector = initializationVector,
-                Owner = session.UserKey,
+                Owner = userKey,
                 Name = key,
             };
             await storage.Set(secretKey, secret);
         }
 
-        public async Task DeleteSecret(string sessionToken, string key, string value)
+        public async Task DeleteSecret(string userKey, string key)
         {
-            var session = await userService.GetSession(sessionToken);
-            var secretKey = session.UserKey + "___" + key.GetStorageKey<string>();
+            var secretKey = userKey + "___" + key.GetStorageKey<string>();
             await storage.Delete(secretKey);
         }
 
-        public async Task<List<(string Key, string Value)>> GetSecrets(string sessionToken)
+        public async Task<List<(string Key, string Value, HashSet<string> Tags)>> GetSecrets(byte[] encryptionKey, string userKey)
         {
-            var session = await userService.GetSession(sessionToken);
-            var encryptionKey = encryptionKeyService.Get(sessionToken);
-            var secrets = await storage.GetSecrets(session.UserKey);
+            var secrets = await storage.GetSecrets(userKey);
 
             return secrets.Select(s =>
             {
@@ -61,7 +47,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
                     s.EncryptedValue,
                     encryptionKey,
                     s.InitializationVector);
-                return (s.Name, decryptedValue);
+                return (s.Name, decryptedValue, s.Tags);
             }).ToList();
         }
     }

@@ -8,22 +8,20 @@ using System.Text;
 
 namespace Gabbro_Secret_Manager.Domain.Services
 {
-    public class EncryptionKeyService(IOptions<EncryptionKeyServiceSettings> options, UserService userService, UserDataService userDataService)
+    public class EncryptionKeyService(IOptions<EncryptionKeyServiceSettings> options)
     {
         private readonly Dictionary<string, byte[]> _keys = new();
         private readonly Queue<string> _keyQueue = new();
         private readonly object _dictLock = new();
 
-        private async Task<byte[]> GenerateEncryptionKey(string sessionToken, string password)
+        private byte[] GenerateEncryptionKey(string userKey, string password, EncryptionKeySettings encryptionKeySettings)
         {
-            var userSession = await userService.GetSession(sessionToken);
-            var userData = await userDataService.GetUserData(userSession.UserKey);
-            var uHash = CryptoService.GenerateHash(userSession.UserKey);
+            var uHash = CryptoService.GenerateHash(userKey);
             var pHash = CryptoService.GenerateHash(password);
             var keyBytes = CryptoService.GenerateHash(
                 Convert.ToBase64String(uHash.Concat(pHash).ToArray()),
-                Convert.FromBase64String(userData.EncryptionKeySettings.Salt),
-                userData.EncryptionKeySettings.Iterations);
+                Convert.FromBase64String(encryptionKeySettings.Salt),
+                encryptionKeySettings.Iterations);
             return keyBytes;
         }
 
@@ -33,12 +31,17 @@ namespace Gabbro_Secret_Manager.Domain.Services
         }
         public byte[] Get(string sessionToken) => _keys[sessionToken];
 
-        public async Task<byte[]> GetOrCreateEncryptionKey(string sessionToken, string password)
+        public byte[] GetOrCreateEncryptionKey(string sessionToken, string userKey, string password, EncryptionKeySettings encryptionKeySettings)
         {
             if (TryGet(sessionToken, out var existingKey))
                 return existingKey!;
 
-            var newKey = await GenerateEncryptionKey(sessionToken, password);
+            return UpsertEncryptionKey(sessionToken, userKey, password, encryptionKeySettings);
+        }
+
+        public byte[] UpsertEncryptionKey(string sessionToken, string userKey, string password, EncryptionKeySettings encryptionKeySettings)
+        {
+            var newKey = GenerateEncryptionKey(userKey, password, encryptionKeySettings);
             Set(sessionToken, newKey);
             return newKey;
         }

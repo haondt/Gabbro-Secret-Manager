@@ -1,7 +1,7 @@
-﻿@model Gabbro_Secret_Manager.Views.Shared.LoginModel
+﻿@model Gabbro_Secret_Manager.Core.Views.LoginModel
 <div class="page flex flex-col align-center" id="loginPage">
     <div class="flex flex-col align-center" style="width: 250px">
-        <form class="flex flex-col gap-15" hx-post="/actions/login" hx-target="#loginPage" hx-swap="outerHTML">
+        <form class="flex flex-col gap-15" hx-post="/account/login" hx-target="#loginPage" hx-swap="outerHTML">
             <div class="flex flex-col gap-5">
                 <input id="username" autocomplete="username" type="text" name="username" class="fs-18" value="@(Model.Username ?? "")"/>
                 <div>username</div>

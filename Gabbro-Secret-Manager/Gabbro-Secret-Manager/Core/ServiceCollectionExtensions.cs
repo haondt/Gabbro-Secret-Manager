@@ -14,21 +14,32 @@ namespace Gabbro_Secret_Manager.Core
             services.AddSingleton<StylesProvider>();
             services.Configure<IndexSettings>(configuration.GetSection(nameof(IndexSettings)));
 
-            services.AddSingleton<PageRegistry>();
+            services.AddScoped<PageRegistry>();
             var indexSettings = configuration.GetSection(nameof(IndexSettings)).Get<IndexSettings>();
-            services.RegisterPartialPage("navigationbar", "~/Core/Views/NavigationBar.cshtml", data =>
+            services.RegisterPage("navigationBar", "~/Core/Views/NavigationBar.cshtml", data =>
             {
-                return new NavigationBarModel
+                var mod =  new NavigationBarModel
                 {
-                    CurrentPage = data.Query["current"].ToString() ?? throw new InvalidOperationException(),
-                    Pages = indexSettings!.NavigationBarPages
+                    Pages = indexSettings!.NavigationBarPages.Select(p => (p, p.Equals(data.Form[NavigationBarModel.CurrentViewKey].ToString() ?? throw new InvalidOperationException(), StringComparison.OrdinalIgnoreCase))).ToList(),
+                    Actions = []
                 };
-            }, false);
+                return mod;
+            }, false, false);
+            services.RegisterPage("loader", "~/Core/Views/Loader.cshtml", data =>
+            {
+                throw new InvalidOperationException();
+            }, false, false);
+            services.RegisterPage("login", "~/Core/Views/Login.cshtml", _ => new LoginModel(), true, false);
+            services.RegisterPage("register", "~/Core/Views/Register.cshtml", _ => new RegisterModel(), true, false);
+            services.RegisterPage("index", "~/Core/Views/Index.cshtml", _ => throw new InvalidOperationException(), false, false);
 
             services.AddSingleton<FileExtensionContentTypeProvider>();
             services.Configure<AuthenticationSettings>(configuration.GetSection(nameof(AuthenticationSettings)));
             services.AddSingleton<CryptoService>();
             services.AddSingleton<UserService>();
+            services.AddHttpContextAccessor();
+            services.AddScoped<ISessionService, SessionService>();
+            services.AddScoped<LifetimeHookService>();
 
             services.AddSingleton<IStorage, MemoryStorage>();
             services.Configure<PersistenceSettings>(configuration.GetSection(nameof(PersistenceSettings)));
@@ -41,12 +52,13 @@ namespace Gabbro_Secret_Manager.Core
             string page,
             string viewPath,
             Func<IRequestData, object> modelFactory,
+            bool setUrl = false,
             bool requiresAuthentication = true)
-        { 
-            services.AddSingleton(new PageRegistryEntry
+        {
+            services.AddScoped<IPageEntryFactory, PageEntryFactory>(_ => new PageEntryFactory
             {
-                Type = PageEntryType.Page,
                 Page = page,
+                SetUrl = setUrl ? page : null,
                 ViewPath = viewPath,
                 ModelFactory = modelFactory,
                 RequiresAuthentication = requiresAuthentication
@@ -54,21 +66,5 @@ namespace Gabbro_Secret_Manager.Core
             return services;
         }
 
-        public static IServiceCollection RegisterPartialPage(this IServiceCollection services,
-            string page,
-            string viewPath,
-            Func<IRequestData, object> modelFactory,
-            bool requiresAuthentication = true)
-        {
-            services.AddSingleton(new PageRegistryEntry
-            {
-                Type = PageEntryType.Partial,
-                Page = page,
-                ViewPath = viewPath,
-                ModelFactory = modelFactory,
-                RequiresAuthentication = requiresAuthentication
-            });
-            return services;
-        }
     }
 }

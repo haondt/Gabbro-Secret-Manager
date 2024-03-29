@@ -21,7 +21,7 @@
 
         public Task<(bool, T?)> TryGet<T>(string key)
         {
-            if (_storage.TryGetValue(key, out var valueObj))
+            if (_storage.TryGetValue(key, out var valueObj) && valueObj is T)
             {
                 return Task.FromResult((true, (T?)valueObj));
             }

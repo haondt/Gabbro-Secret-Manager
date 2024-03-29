@@ -22,16 +22,7 @@
 
     </head>
     <body>
-        <div id="overlay">
-            <div class="background"></div>
-            <div id="overlay-content"
-                _="on click
-                    set my innerHTML to ''
-                    remove .overlaid from <body/>
-                    end">
-            </div>
-        </div>
-        <div class="width-100 flex flex-col" id="below-overlay">
+        <div class="width-100 flex flex-col">
             <div class="flex flex-col align-center gap-10 mt-10 mb-20">
                 <h1>@Model.Title</h1>
                 @await Html.PartialAsync(Model.NavigationBar)

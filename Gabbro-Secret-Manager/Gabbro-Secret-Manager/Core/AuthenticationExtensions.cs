@@ -1,18 +1,8 @@
-﻿using Gabbro_Secret_Manager.Domain;
-
-namespace Gabbro_Secret_Manager.Core
+﻿namespace Gabbro_Secret_Manager.Core
 {
     public static class AuthenticationExtensions
     {
         public const string SESSION_TOKEN_COOKIE_KEY = "SessionToken";
-        public static Task<(bool Result, string? UserKey)> IsAuthenticated(this IRequestData request, UserService userService)
-        {
-            if (!request.Cookies.TryGetValue(SESSION_TOKEN_COOKIE_KEY, out var sessionToken))
-                return Task.FromResult<(bool, string?)>((false, default));
-            if (string.IsNullOrEmpty(sessionToken)) 
-                return Task.FromResult<(bool, string?)>((false, default));
-            return userService.TryAuthenticateUser(sessionToken);
-        }
 
         public static string GetAuthentication(this IRequestData request)
         {

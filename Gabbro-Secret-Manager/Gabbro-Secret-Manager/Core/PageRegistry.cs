@@ -6,7 +6,20 @@
                 .GroupBy(f => f.Page, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(grp => grp.Key, grp => grp.Last(), StringComparer.OrdinalIgnoreCase);
 
-        public bool TryGetPageFactory(string page, out IPageEntryFactory? entry) => _pageFactories.TryGetValue(page, out entry);
-        public IPageEntryFactory GetPageFactory(string page) => _pageFactories[page];
+        public bool TryGetPageFactory(string page, out WrappedPageEntryFactory? entry)
+        {
+            if(!_pageFactories.TryGetValue(page, out var pageEntryFactory))
+            {
+                entry = null;
+                return false;
+            }
+            entry = new WrappedPageEntryFactory(pageEntryFactory, this);
+            return true;
+        }
+        public WrappedPageEntryFactory GetPageFactory(string page)
+        {
+            var pageEntryFactory = _pageFactories[page];
+            return new WrappedPageEntryFactory(pageEntryFactory, this);
+        }
     }
 }

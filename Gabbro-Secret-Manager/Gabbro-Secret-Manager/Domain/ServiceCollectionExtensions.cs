@@ -28,6 +28,14 @@ namespace Gabbro_Secret_Manager.Domain
         public static IServiceCollection RegisterPages(this IServiceCollection services)
         {
             services.AddScoped<IPageEntryFactory, HomePageEntryFactory>();
+            services.AddScoped<IPageEntryFactory, PageEntryFactory>(_ => new PageEntryFactory
+            {
+                Page = "passwordReentryForm",
+                SetUrl = "",
+                ViewPath = "PasswordReentryForm",
+                ModelFactory = (_, _) => new PasswordReentryFormModel(),
+                RequiresAuthentication = false
+            });
 
             return services;
         }

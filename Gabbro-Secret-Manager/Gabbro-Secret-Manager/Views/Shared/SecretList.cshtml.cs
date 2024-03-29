@@ -1,6 +1,8 @@
+using Gabbro_Secret_Manager.Core;
+
 namespace Gabbro_Secret_Manager.Views.Shared
 {
-    public class SecretListModel
+    public class SecretListModel : IPageModel
     {
         public List<ViewSecret> Values { get; set; } = [];
         public TagSelectModel CreateTagSelectModel()

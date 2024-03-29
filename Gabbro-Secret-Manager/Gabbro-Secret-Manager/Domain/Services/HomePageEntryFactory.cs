@@ -10,21 +10,18 @@ namespace Gabbro_Secret_Manager.Domain.Services
         public string Page => "home";
         public string ViewPath => "Home";
 
-        public async Task<PageEntry> Create(IRequestData data)
+        public async Task<PageEntry> Create(PageRegistry pageRegistry, IRequestData data)
         {
-            var model = new HomeModel
-            {
-                SearchString = "",
-                ShouldReRequestPassword = true
-            };
 
             if (encryptionKeyService.TryGet(sessionService.SessionToken!, out var encryptionKey))
             {
-                model.ShouldReRequestPassword = false;
                 var secrets = await secretService.GetSecrets(encryptionKey!, await sessionService.GetUserKeyAsync());
-                model.Secrets = new SecretListModel
+                var model = new HomeModel
                 {
-                    Values = secrets
+                    SearchString = "",
+                    Secrets = new SecretListModel
+                    {
+                        Values = secrets
                         .Select(s => new ViewSecret
                         {
                             Name = s.Key,
@@ -32,13 +29,15 @@ namespace Gabbro_Secret_Manager.Domain.Services
                             Tags = s.Tags
                         })
                         .ToList()
+                    }
                 };
+                return await Create(model);
             }
 
-            return await Create(model);
+            return await pageRegistry.GetPageFactory("passwordReentryForm").Create(data);
         }
 
-        public Task<PageEntry> Create(object model)
+        public Task<PageEntry> Create(IPageModel model)
         {
             return Task.FromResult(new PageEntry
             {

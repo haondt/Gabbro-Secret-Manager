@@ -5,7 +5,6 @@
     on onNavigate(@NavigationBarModel.CurrentViewKey) from body
         set my @@hx-vals to `{&quot;@NavigationBarModel.CurrentViewKey&quot;:&quot;$@NavigationBarModel.CurrentViewKey&quot;}`
         trigger refreshNavigationBar on me
-
 " hx-trigger="refreshNavigationBar" hx-post="/partials/navigationBar" hx-swap="outerHTML">
     @foreach (var (pageName, isSelected) in Model.Pages)
     {

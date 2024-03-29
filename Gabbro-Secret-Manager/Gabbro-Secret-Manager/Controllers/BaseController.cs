@@ -9,8 +9,8 @@ namespace Gabbro_Secret_Manager.Controllers
     [Produces("text/html")]
     public class BaseController(PageRegistry pageRegistry, IOptions<IndexSettings> options, ISessionService sessionService) : Controller
     {
-        protected Task<IActionResult> GetView(string page, Func<object> modelFactory) => GetView(page, () => Task.FromResult(modelFactory()));
-        protected async Task<IActionResult> GetView(string page, Func<Task<object>>? modelFactory = null)
+        protected Task<IActionResult> GetView(string page, Func<IPageModel> modelFactory) => GetView(page, () => Task.FromResult(modelFactory()));
+        protected async Task<IActionResult> GetView(string page, Func<Task<IPageModel>>? modelFactory = null)
         {
             var usingGivenPage = true;
             if (!pageRegistry.TryGetPageFactory(page, out var pageEntryFactory) || pageEntryFactory == null)

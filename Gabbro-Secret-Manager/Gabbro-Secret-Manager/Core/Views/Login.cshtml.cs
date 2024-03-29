@@ -1,6 +1,6 @@
 namespace Gabbro_Secret_Manager.Core.Views
 {
-    public class LoginModel
+    public class LoginModel : IPageModel
     {
         public string Username { get; set; } = "";
         public string Password { get; set; } = "";

@@ -7,11 +7,11 @@ namespace Gabbro_Secret_Manager.Core
         public required string Page { get; set; }
         public string? SetUrl { get; set; }
         public required string ViewPath { get; set; }
-        public required Func<IRequestData, object> ModelFactory { get; set; }
+        public required Func<PageRegistry, IRequestData, IPageModel> ModelFactory { get; set; }
 
-        public Task<PageEntry> Create(IRequestData data) => Create(ModelFactory(data));
+        public Task<PageEntry> Create(PageRegistry pageRegistry, IRequestData data) => Create(ModelFactory(pageRegistry, data));
 
-        public Task<PageEntry> Create(object model)
+        public Task<PageEntry> Create(IPageModel model)
         {
             return Task.FromResult(new PageEntry
             {

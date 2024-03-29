@@ -1,9 +1,10 @@
+using Gabbro_Secret_Manager.Core;
+
 namespace Gabbro_Secret_Manager.Views.Shared
 {
-    public class HomeModel
+    public class HomeModel : IPageModel
     {
         public string SearchString { get; set; } = "";
-        public bool ShouldReRequestPassword { get; set; } = false;
-        public SecretListModel? Secrets { get; set; }
+        public SecretListModel Secrets { get; set; } = new();
     }
 }

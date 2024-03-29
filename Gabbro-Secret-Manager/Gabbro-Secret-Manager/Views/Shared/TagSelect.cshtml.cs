@@ -1,9 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using Gabbro_Secret_Manager.Core;
 
 namespace Gabbro_Secret_Manager.Views.Shared
 {
-    public class TagSelectModel
+    public class TagSelectModel : IPageModel
     {
         public Dictionary<string, bool> Options { get; set; } = [];
         public Dictionary<string, bool> DummyOptions { get; set; } = new Dictionary<string, bool>

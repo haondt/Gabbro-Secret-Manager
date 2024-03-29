@@ -17,15 +17,11 @@ namespace Gabbro_Secret_Manager.Controllers
         [HttpPost("refresh-encryption-key")]
         public async Task<IActionResult> RefreshEncryptionKey([FromForm] string? password)
         {
-            return Ok();
-            //TODO
-            /*
-            return Redirect($"/{_indexSettings.AuthenticationPage}");
             if (!await _sessionService.IsAuthenticatedAsync())
             {
                 if (!string.IsNullOrEmpty(_sessionService.SessionToken))
                     await userService.EndSession(_sessionService.SessionToken);
-                return Redirect($"/{_indexSettings.AuthenticationPage}");
+                return await GetView(_indexSettings.HomePage);
             }
 
             var session = await userService.GetSession(_sessionService.SessionToken!);
@@ -33,22 +29,18 @@ namespace Gabbro_Secret_Manager.Controllers
             var (result, sessionToken, sessionExpiry, _) = await userService.TryAuthenticateUser(user.Username, password ?? "");
             if (!result)
             {
-                var pageEntry = await _pageRegistry.GetPageFactory("passwordReentryForm").Create(new PasswordReentryFormModel
+                return await GetView("passwordReentryForm", () => new PasswordReentryFormModel
                 {
                     Error = "Incorrect password",
                     Text = password ?? ""
                 });
-                return View(pageEntry.ViewPath, pageEntry.Model);
             }
 
             _sessionService.Reset(sessionToken);
             var userData = await userDataService.GetUserData(session.UserKey);
             encryptionKeyService.UpsertEncryptionKey(sessionToken!, session.UserKey, password!, userData.EncryptionKeySettings);
-
             Response.Cookies.AddAuthentication(sessionToken, sessionExpiry);
-            return await this.GetPageView(_indexSettings.HomePage, _pageRegistry);
-            */
-
+            return await GetView(_indexSettings.HomePage);
         }
 
     }

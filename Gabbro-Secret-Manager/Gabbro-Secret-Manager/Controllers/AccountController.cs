@@ -28,6 +28,7 @@ namespace Gabbro_Secret_Manager.Controllers
 
             _sessionService.Reset(sessionToken);
             await lifetimeHookService.OnLoginAsync(username, password, userKey, sessionToken);
+            Response.Cookies.AddAuthentication(sessionToken, sessionExpiry);
             return await GetView(_indexSettings.HomePage);
         }
 

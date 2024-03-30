@@ -1,4 +1,6 @@
-﻿namespace Gabbro_Secret_Manager.Core
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Gabbro_Secret_Manager.Core
 {
     public class PageRegistry(IEnumerable<IPageEntryFactory> pageEntryFactories)
     {
@@ -6,7 +8,7 @@
                 .GroupBy(f => f.Page, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(grp => grp.Key, grp => grp.Last(), StringComparer.OrdinalIgnoreCase);
 
-        public bool TryGetPageFactory(string page, out WrappedPageEntryFactory? entry)
+        public bool TryGetPageFactory(string page, [NotNullWhen(true)] out WrappedPageEntryFactory? entry)
         {
             if(!_pageFactories.TryGetValue(page, out var pageEntryFactory))
             {

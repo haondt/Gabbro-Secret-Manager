@@ -18,12 +18,12 @@ namespace Gabbro_Secret_Manager.Core
             var indexSettings = configuration.GetSection(nameof(IndexSettings)).Get<IndexSettings>();
             services.RegisterPage("navigationBar", "~/Core/Views/NavigationBar.cshtml", data =>
             {
-                var mod =  new NavigationBarModel
+                data.Query.TryGetValue(NavigationBarModel.CurrentViewKey, out string? castedValue);
+                return new NavigationBarModel
                 {
-                    Pages = indexSettings!.NavigationBarPages.Select(p => (p, p.Equals(data.Form[NavigationBarModel.CurrentViewKey].ToString() ?? throw new InvalidOperationException(), StringComparison.OrdinalIgnoreCase))).ToList(),
+                    Pages = indexSettings!.NavigationBarPages.Select(p => (p, p.Equals(castedValue, StringComparison.OrdinalIgnoreCase))).ToList(),
                     Actions = []
                 };
-                return mod;
             }, false, false);
             services.RegisterPage("loader", "~/Core/Views/Loader.cshtml", () =>
             {

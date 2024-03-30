@@ -116,9 +116,10 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
             {
                 var data = await GetDataAsync();
                 return data.Values
-                .Select(kvp => kvp.Value as Secret)
-                .Where(s => s != null && s.Owner.Equals(userKey))
+                .Select(kvp => kvp.Value)
+                .Where(v => v != null && v is Secret)
                 .Cast<Secret>()
+                .Where(s => s.Owner.Equals(userKey))
                 .ToList();
             });
 

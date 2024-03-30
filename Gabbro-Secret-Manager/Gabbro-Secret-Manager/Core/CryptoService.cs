@@ -8,11 +8,12 @@ namespace Gabbro_Secret_Manager.Core
     {
         private const int _saltSize = 16; // 16 bytes for the salt
         private const int _iterations = 10000; // Number of iterations for the PBKDF2 algorithm
+        private const int _passwordHashByteLength = 32;
 
         public (string Salt, string Hash) HashPassword(string password)
         {
             byte[] salt = GenerateSalt(_saltSize);
-            byte[] hash = GenerateHash(password, salt, _iterations);
+            byte[] hash = GenerateHash(password, salt, _iterations, _passwordHashByteLength);
 
             return (
                 Convert.ToBase64String(salt),
@@ -21,7 +22,7 @@ namespace Gabbro_Secret_Manager.Core
 
         public string HashPassword(string password, string salt)
         {
-            var hash = GenerateHash(password, Convert.FromBase64String(salt), _iterations);
+            var hash = GenerateHash(password, Convert.FromBase64String(salt), _iterations, _passwordHashByteLength);
             return Convert.ToBase64String(hash);
         }
 
@@ -35,10 +36,10 @@ namespace Gabbro_Secret_Manager.Core
             return salt;
         }
 
-        public static byte[] GenerateHash(string input, byte[] salt, int iterations)
+        public static byte[] GenerateHash(string input, byte[] salt, int iterations, int outputLength)
         {
 
-            return Rfc2898DeriveBytes.Pbkdf2(input, salt, iterations, HashAlgorithmName.SHA256, 256);
+            return Rfc2898DeriveBytes.Pbkdf2(input, salt, iterations, HashAlgorithmName.SHA256, outputLength);
         }
         public static byte[] GenerateHash(string input)
         {
@@ -47,6 +48,9 @@ namespace Gabbro_Secret_Manager.Core
 
         public static (string EncryptedValue, string InitializationVector) Encrypt(string input, byte[] key)
         {
+            if (key.Length != 32)
+                throw new ArgumentException("Key must be 32 bytes in length");
+
             using Aes aesAlg = Aes.Create();
             aesAlg.Key = key;
             aesAlg.GenerateIV();
@@ -67,22 +71,22 @@ namespace Gabbro_Secret_Manager.Core
 
         public static string Decrypt(string input, byte[] key, string initializationVector)
         {
+            if (key.Length != 32)
+                throw new ArgumentException("Key must be 32 bytes in length");
+            var iv = Convert.FromBase64String(initializationVector);
+            if (iv?.Length != 16)
+                throw new ArgumentException("Initialization vector must be a 16 byte base64-encoded string");
+
             using Aes aesAlg = Aes.Create();
             aesAlg.Key = key;
-            aesAlg.IV = Convert.FromBase64String(initializationVector);
+            aesAlg.IV = iv;
 
-            ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+            ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+            using var msDecrypt = new MemoryStream(Convert.FromBase64String(input));
+            using var csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read);
+            using var srDecrypt = new StreamReader(csDecrypt);
 
-            using var msEncrypt = new MemoryStream();
-            using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-            {
-                using var swEncrypt = new StreamWriter(csEncrypt);
-                swEncrypt.Write(input);
-            }
-
-            return Convert.ToBase64String(msEncrypt.ToArray());
+            return srDecrypt.ReadToEnd();
         }
-
-
     }
 }

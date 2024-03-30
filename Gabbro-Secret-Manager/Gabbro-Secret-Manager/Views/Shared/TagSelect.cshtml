@@ -1,6 +1,6 @@
 ﻿@model Gabbro_Secret_Manager.Views.Shared.TagSelectModel
 <div id="tag-select">
-    <button class="dropdown @if (Model.HasActiveTags()) { <text>active</text> }"
+    <button type="button" class="dropdown @if (Model.HasActiveTags()) { <text>active</text> }"
         _="on click toggle .hidden on #tagselectpanel
            on click toggle .selected on me
            on secretsFilterUpdate from #tag-select
@@ -17,7 +17,7 @@
                 remove .selected from the previous <button/>
             end
             ">
-        <button _="on click 
+        <button type="button" _="on click 
             send click to <.tag-select-chip.selected/>
             set (the next <input/>)'s value to ''
             send keyup to the next <input/>"

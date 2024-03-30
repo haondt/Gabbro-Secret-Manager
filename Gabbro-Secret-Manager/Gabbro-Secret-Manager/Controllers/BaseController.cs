@@ -13,10 +13,10 @@ namespace Gabbro_Secret_Manager.Controllers
         protected async Task<IActionResult> GetView(string page, Func<Task<IPageModel>>? modelFactory = null)
         {
             var usingGivenPage = true;
-            if (!pageRegistry.TryGetPageFactory(page, out var pageEntryFactory) || pageEntryFactory == null)
+            if (!pageRegistry.TryGetPageFactory(page, out var pageEntryFactory))
             {
                 usingGivenPage = false;
-                if (!pageRegistry.TryGetPageFactory(options.Value.HomePage, out pageEntryFactory) || pageEntryFactory == null)
+                if (!pageRegistry.TryGetPageFactory(options.Value.HomePage, out pageEntryFactory))
                     throw new InvalidOperationException("No home page registered");
             }
 
@@ -24,7 +24,7 @@ namespace Gabbro_Secret_Manager.Controllers
                 if (!await sessionService.IsAuthenticatedAsync())
                 {
                     usingGivenPage = false;
-                    if (!pageRegistry.TryGetPageFactory(options.Value.AuthenticationPage, out pageEntryFactory) || pageEntryFactory == null)
+                    if (!pageRegistry.TryGetPageFactory(options.Value.AuthenticationPage, out pageEntryFactory))
                         throw new InvalidOperationException("No authentication page registered");
                 }
 

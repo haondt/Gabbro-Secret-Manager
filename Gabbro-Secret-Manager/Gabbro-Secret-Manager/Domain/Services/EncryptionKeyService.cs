@@ -3,6 +3,7 @@ using Gabbro_Secret_Manager.Domain.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -21,11 +22,12 @@ namespace Gabbro_Secret_Manager.Domain.Services
             var keyBytes = CryptoService.GenerateHash(
                 Convert.ToBase64String(uHash.Concat(pHash).ToArray()),
                 Convert.FromBase64String(encryptionKeySettings.Salt),
-                encryptionKeySettings.Iterations);
+                encryptionKeySettings.Iterations,
+                32);
             return keyBytes;
         }
 
-        public bool TryGet(string sessionToken, out byte[]? key)
+        public bool TryGet(string sessionToken, [NotNullWhen(true)] out byte[]? key)
         {
             return _keys.TryGetValue(sessionToken, out key);
         }

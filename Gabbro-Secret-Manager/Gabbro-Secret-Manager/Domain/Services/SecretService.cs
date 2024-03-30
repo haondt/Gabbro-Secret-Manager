@@ -31,6 +31,12 @@ namespace Gabbro_Secret_Manager.Domain.Services
             await storage.Set(secretKey, secret);
         }
 
+        public Task<bool> ContainsSecret(string userKey, string key)
+        {
+            var secretKey = userKey + "___" + key.GetStorageKey<string>();
+            return storage.ContainsKey(secretKey);
+        }
+
         public async Task DeleteSecret(string userKey, string key)
         {
             var secretKey = userKey + "___" + key.GetStorageKey<string>();

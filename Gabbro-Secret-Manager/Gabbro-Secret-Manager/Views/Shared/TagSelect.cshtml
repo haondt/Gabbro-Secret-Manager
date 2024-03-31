@@ -26,7 +26,7 @@
             _="on keyup show <label/> in #tag-select-list
                 when it's innerHTML contains my value"/>
         <div id="tag-select-list" class="flex flex-col gap-10" style="max-height: 140px; overflow: auto;">
-            @foreach(var option in Model.DummyOptions)
+            @foreach(var option in Model.Options)
             {
                 <label class="tag-select-chip @if (option.Value) { <text>selected</text> }"
                     for="tag-select-input-@option.Key"

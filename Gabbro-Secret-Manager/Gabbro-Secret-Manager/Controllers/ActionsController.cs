@@ -58,39 +58,67 @@ namespace Gabbro_Secret_Manager.Controllers
             return await GetView(_indexSettings.HomePage);
         }
 
-        [HttpPost("upsert-secret")]
-        public async Task<IActionResult> UpsertSecret(
-            [FromForm] bool shouldOverwriteExisting,
-            [FromForm] string key,
-            [FromForm] string value,
-            [FromForm] string comments)
+        [HttpDelete("delete-secret")]
+        public async Task<IActionResult> DeleteSecret([FromForm] string name)
         {
+
             if (await VerifySession() is (false, var invalidSessionResponse))
                 return invalidSessionResponse!;
 
             if (!encryptionKeyService.TryGet(_sessionService.SessionToken!, out var encryptionKey))
                 return await GetView("passwordReentryForm");
 
-            Func<UpsertSecretFormModel> upsertSecretFormModelGeneratorGenerator(string errorMessage) => () => new UpsertSecretFormModel
+            var userKey = await _sessionService.GetUserKeyAsync();
+            await secretService.DeleteSecret(userKey, name);
+            return Ok();
+        }
+
+        [HttpPost("upsert-secret")]
+        public async Task<IActionResult> UpsertSecret(
+            [FromForm] string key,
+            [FromForm] string? value,
+            [FromForm] string? comments,
+            [FromForm] List<string> tags,
+            [FromForm] string? currentKey)
+        {
+            comments ??= "";
+            value ??= "";
+
+            if (await VerifySession() is (false, var invalidSessionResponse))
+                return invalidSessionResponse!;
+
+            if (!encryptionKeyService.TryGet(_sessionService.SessionToken!, out var encryptionKey))
+                return await GetView("passwordReentryForm");
+
+            var userKey = await _sessionService.GetUserKeyAsync();
+            async Task<Func<UpsertSecretFormModel>> upsertSecretFormModelGeneratorGenerator(string errorMessage)
             {
-                ShouldOverwriteExisting = shouldOverwriteExisting,
-                Key = key,
-                Value = value,
-                Comments = comments,
-                Error = errorMessage
+                var tagSuggestions = await secretService.GetAvailableTags(encryptionKey, userKey);
+                return () => new UpsertSecretFormModel
+                {
+                    CurrentKey = currentKey,
+                    Key = key,
+                    Value = value,
+                    TagSuggestions = tagSuggestions,
+                    Tags = [.. tags],
+                    Comments = comments,
+                    Error = errorMessage
+                };
             };
 
             if (string.IsNullOrWhiteSpace(key))
-                return await GetView("upsertSecretForm", upsertSecretFormModelGeneratorGenerator("Secret name cannot be empty"));
+                return await GetView("upsertSecretForm", await upsertSecretFormModelGeneratorGenerator("Secret name cannot be empty"));
 
             if (!Regex.IsMatch(key, @"^[a-zA-z0-9_-]+$"))
-                return await GetView("upsertSecretForm", upsertSecretFormModelGeneratorGenerator("Secret name may only contain the characters [a-zA-Z0-9_-]+"));
+                return await GetView("upsertSecretForm", await upsertSecretFormModelGeneratorGenerator("Secret name may only contain the characters [a-zA-Z0-9_-]+"));
 
-            var userKey = await _sessionService.GetUserKeyAsync();
-            if (!shouldOverwriteExisting && await secretService.ContainsSecret(userKey, key))
-                return await GetView("upsertSecretForm", upsertSecretFormModelGeneratorGenerator("Secret name already in use"));
+            if (currentKey != null && currentKey != key && await secretService.ContainsSecret(userKey, key))
+                return await GetView("upsertSecretForm", await upsertSecretFormModelGeneratorGenerator("Secret name already in use"));
 
-            await secretService.UpsertSecret(encryptionKey, userKey, key, value);
+            await secretService.UpsertSecret(encryptionKey, userKey, key, value, [.. tags]);
+            if (!string.IsNullOrWhiteSpace(currentKey) && currentKey != key)
+                await secretService.DeleteSecret(userKey, currentKey);
+
             return await GetView(_indexSettings.HomePage);
         }
     }

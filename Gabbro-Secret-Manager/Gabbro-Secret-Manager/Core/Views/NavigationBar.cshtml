@@ -9,8 +9,14 @@
     @foreach (var (pageName, isSelected) in Model.Pages)
     {
         <li class="navigation @(isSelected ? "selected" : "")">
+            <!--
+
             <button class="navigation @(isSelected ? "selected" : "")"
                 _="on click send onNavigate(@NavigationBarModel.CurrentViewKey:'@pageName') to navigationBar"
+                >@pageName.ToString().ToLower()</button>
+            -->
+            <button class="navigation @(isSelected ? "selected" : "")"
+                hx-get="/partials/@pageName" hx-target="#content" hx-swap="innerHTML"
                 >@pageName.ToString().ToLower()</button>
         </li>
     }

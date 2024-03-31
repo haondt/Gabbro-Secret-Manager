@@ -4,31 +4,30 @@ using Gabbro_Secret_Manager.Views.Shared;
 
 namespace Gabbro_Secret_Manager.Domain.Services
 {
-    public class HomePageEntryFactory(ISessionService sessionService, EncryptionKeyService encryptionKeyService, SecretService secretService) : IPageEntryFactory
+    public class SecretListEntryFactory(
+        ISessionService sessionService,
+        EncryptionKeyService encryptionKeyService,
+        SecretService secretService) : IPageEntryFactory
     {
         public bool RequiresAuthentication => true;
-        public string Page => "home";
-        public string ViewPath => "Home";
+        public string Page => "secretListEntry";
+        public string ViewPath => "SecretListEntry";
 
         public async Task<PageEntry> Create(PageRegistry pageRegistry, IRequestData data)
         {
+            var secretName = data.Query.GetValue<string>(SecretListEntryModel.SecretNameKey); 
 
+            
             if (encryptionKeyService.TryGet(sessionService.SessionToken!, out var encryptionKey))
             {
-                var secrets = await secretService.GetSecrets(encryptionKey!, await sessionService.GetUserKeyAsync());
-                var model = new HomeModel
+                var (secret, tags) = await secretService.GetSecret(encryptionKey!, await sessionService.GetUserKeyAsync(), secretName);
+                var model = new SecretListEntryModel
                 {
-                    SearchString = "",
-                    Secrets = new SecretListModel
+                    Secret = new ViewSecret
                     {
-                        Values = secrets
-                        .Select(s => new ViewSecret
-                        {
-                            Name = s.Key,
-                            Value = s.Value,
-                            Tags = s.Tags // TODO
-                        })
-                        .ToList()
+                        Name = secretName,
+                        Value = secret,
+                        Tags = tags,
                     }
                 };
                 return await Create(model);
@@ -43,7 +42,6 @@ namespace Gabbro_Secret_Manager.Domain.Services
             {
                 Page = Page,
                 ViewPath = ViewPath,
-                SetUrl = "home",
                 Model = model
             });
         }

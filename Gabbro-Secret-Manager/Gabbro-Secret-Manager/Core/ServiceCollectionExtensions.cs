@@ -1,6 +1,7 @@
 ﻿using Gabbro_Secret_Manager.Core.Persistence;
 using Gabbro_Secret_Manager.Core.Views;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Gabbro_Secret_Manager.Core
 {
@@ -8,6 +9,7 @@ namespace Gabbro_Secret_Manager.Core
     {
         public static IServiceCollection AddCoreServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddTransient<IMemoryCache, MemoryCache>();
             services.Configure<AssetsSettings>(configuration.GetSection(nameof(AssetsSettings)));
             services.AddSingleton<AssetProvider>();
             services.Configure<ColorSettings>(configuration.GetSection(nameof(ColorSettings)));

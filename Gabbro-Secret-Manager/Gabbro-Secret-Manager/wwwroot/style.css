@@ -68,6 +68,26 @@ button:hover:not(:disabled) {
     visibility: hidden;
 }
 
+span.tooltip {
+    position: absolute;
+    transform: translateY(calc(-100% - 5px));
+    background: var(--color-bright-bg);
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 5px;
+
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0.3s, opacity 0.3s ease-out;
+}
+
+span.tooltip.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+
 #tagselectpanel {
     position: absolute;
     width: 248px;
@@ -152,12 +172,14 @@ button.dropdown.active {
     padding-top: 2px;
     padding-bottom: 3px;
     width: fit-content;
-    transition: background-color 0.3s ease;
+    transition: border 1s ease;
 }
 
 .tag-select-chip:hover {
     cursor: pointer;
     border: 1px solid var(--color-accent);
+    
+    transition: initial;
 }
 
 .tag-select-chip.selected {
@@ -166,10 +188,38 @@ button.dropdown.active {
     background: var(--color-accent);
 }
 
-.secret-list-tag {
+.secret-list-value {
+    width: 250px;
+    word-wrap: break-word;
+    border-bottom: 1px solid var(--color-dark-fg);
+    max-height: 50px;
+    overflow: auto;
+    padding: 10px;
+    transition: border 1s ease;
+}
 
+.secret-list-value:hover {
+    border-bottom: 1px solid var(--color-accent);
+    transition: initial;
 }
 
 li.navigation.selected {
     border-bottom: 2px solid var(--color-accent);
 }
+
+table {
+    border-collapse: collapse;
+}
+th {
+    font-weight: bold;
+    padding-bottom: 10px;
+}
+thead {
+    border-bottom: 1px solid white;
+}
+td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    vertical-align: bottom;
+}
+

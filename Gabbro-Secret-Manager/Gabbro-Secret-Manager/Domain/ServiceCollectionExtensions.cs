@@ -36,14 +36,12 @@ namespace Gabbro_Secret_Manager.Domain
                 ModelFactory = (_, _) => new PasswordReentryFormModel(),
                 RequiresAuthentication = false
             });
-            services.RegisterPage("upsertSecretForm", "UpsertSecretForm", data => new UpsertSecretFormModel
-            {
-                ShouldOverwriteExisting = data.Query.GetValue<bool>("shouldOverwriteExisting"),
-                Key = data.Query.GetValueOrDefault<string>("key", ""),
-                Value = data.Query.GetValueOrDefault<string>("value", ""),
-                Comments = data.Query.GetValueOrDefault<string>("comments", ""),
-                Tags = data.Query.GetValues<string>("tags").Distinct().ToHashSet(),
-            }, true, true);
+            services.AddScoped<IPageEntryFactory, UpsertSecretFormFactory>();
+            services.RegisterPage("confirmDeleteSecretListEntry",
+                "ConfirmDeleteSecretListEntry",
+                data => new ConfirmDeleteSecretListEntryModel(data.Query.GetValue<string>(SecretListEntryModel.SecretNameKey)),
+                false, false);
+            services.AddScoped<IPageEntryFactory, SecretListEntryFactory>();
 
             return services;
         }

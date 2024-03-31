@@ -1,11 +1,22 @@
 ﻿using Gabbro_Secret_Manager.Core;
 using Gabbro_Secret_Manager.Domain.Models;
 using Gabbro_Secret_Manager.Domain.Persistence;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Gabbro_Secret_Manager.Domain.Services
 {
-    public class SecretService(IGabbroStorageService storage)
+    public class SecretService(IGabbroStorageService storage, IMemoryCache memoryCache)
     {
+        public Task<List<string>> GetAvailableTags(byte[] encryptionKey, string userKey)
+        {
+            return memoryCache.GetOrCreateAsync(userKey, async e =>
+            {
+                e.SlidingExpiration = TimeSpan.FromHours(1);
+                var secrets = await GetSecrets(encryptionKey, userKey);
+                return secrets.SelectMany(s => s.Tags).Distinct().ToList();
+            })!;
+        }
+
         public async Task<(string Value, HashSet<string> Tags)> GetSecret(byte[] encryptionKey, string userKey, string key)
         {
             var secretKey = userKey + "___" + key.GetStorageKey<string>();
@@ -17,12 +28,14 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return (decryptedValue, secret.Tags);
         }
 
-        public async Task UpsertSecret(byte[] encryptionKey, string userKey, string key, string value)
+        public async Task UpsertSecret(byte[] encryptionKey, string userKey, string key, string value, HashSet<string>? tags = null)
         {
+            memoryCache.Remove(userKey);
             var secretKey = userKey + "___" + key.GetStorageKey<string>();
             var (encryptedValue, initializationVector) = CryptoService.Encrypt(value, encryptionKey);
             var secret = new Secret
             {
+                Tags = tags ?? [],
                 EncryptedValue = encryptedValue,
                 InitializationVector = initializationVector,
                 Owner = userKey,
@@ -39,6 +52,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
 
         public async Task DeleteSecret(string userKey, string key)
         {
+            memoryCache.Remove(userKey);
             var secretKey = userKey + "___" + key.GetStorageKey<string>();
             await storage.Delete(secretKey);
         }
@@ -56,5 +70,6 @@ namespace Gabbro_Secret_Manager.Domain.Services
                 return (s.Name, decryptedValue, s.Tags);
             }).ToList();
         }
+
     }
 }

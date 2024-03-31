@@ -1,4 +1,5 @@
 using Gabbro_Secret_Manager.Core;
+using Gabbro_Secret_Manager.Domain.Models;
 
 namespace Gabbro_Secret_Manager.Views.Shared
 {
@@ -11,15 +12,9 @@ namespace Gabbro_Secret_Manager.Views.Shared
             {
                 Options = Values
                     .SelectMany(s => s.Tags)
-                    .ToDictionary(s => s, _ => true)
+                    .Distinct()
+                    .ToDictionary(s => s, _ => false)
             };
         }
-    }
-
-    public class ViewSecret
-    {
-        public required  string Name { get; set; }
-        public required string Value { get; set; }
-        public required HashSet<string> Tags { get; set; } = [];
     }
 }

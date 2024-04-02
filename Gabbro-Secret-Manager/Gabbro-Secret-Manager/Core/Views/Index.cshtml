@@ -9,6 +9,8 @@
         <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
 
         <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+
+        <script type="text/hyperscript" src="@Url.Content("~/assets/behaviours._hs")"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,7 +24,7 @@
 
     </head>
     <body>
-        <div class="width-100 flex flex-col">
+        <div class="w-full flex flex-col">
             <div class="flex flex-col align-center gap-10 mt-10 mb-20">
                 <h1>@Model.Title</h1>
                 @await Html.PartialAsync(Model.NavigationBar)

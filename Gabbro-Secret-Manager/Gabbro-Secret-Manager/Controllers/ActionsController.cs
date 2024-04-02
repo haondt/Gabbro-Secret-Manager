@@ -115,7 +115,7 @@ namespace Gabbro_Secret_Manager.Controllers
             if (currentKey != null && currentKey != key && await secretService.ContainsSecret(userKey, key))
                 return await GetView("upsertSecretForm", await upsertSecretFormModelGeneratorGenerator("Secret name already in use"));
 
-            await secretService.UpsertSecret(encryptionKey, userKey, key, value, [.. tags]);
+            await secretService.UpsertSecret(encryptionKey, userKey, key, value, comments, [.. tags]);
             if (!string.IsNullOrWhiteSpace(currentKey) && currentKey != key)
                 await secretService.DeleteSecret(userKey, currentKey);
 

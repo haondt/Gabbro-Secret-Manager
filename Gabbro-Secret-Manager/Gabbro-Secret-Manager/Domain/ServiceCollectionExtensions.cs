@@ -42,6 +42,7 @@ namespace Gabbro_Secret_Manager.Domain
                 data => new ConfirmDeleteSecretListEntryModel(data.Query.GetValue<string>(SecretListEntryModel.SecretNameKey)),
                 false, false);
             services.AddScoped<IPageEntryFactory, SecretListEntryFactory>();
+            services.RegisterPage("upsertSecretFormTag", "UpsertSecretFormTag", data => new UpsertSecretFormTagModel { Value = data.Query.GetValue<string>("value") });
 
             return services;
         }

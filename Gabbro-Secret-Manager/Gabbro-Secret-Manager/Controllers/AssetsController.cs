@@ -15,6 +15,11 @@ namespace Gabbro_Secret_Manager.Controllers
         FileExtensionContentTypeProvider contentTypeProvider) : BaseController(pageRegistry, options, sessionService)
     {
 
+        private Dictionary<string, string> _customContentTypes = new Dictionary<string, string>
+        {
+            { "._hs", "text/hyperscript" }
+        };
+
         [Route("{**assetPath}")]
         public IActionResult Get(string assetPath)
         {
@@ -24,8 +29,9 @@ namespace Gabbro_Secret_Manager.Controllers
             if (assetPath.Contains('/') || assetPath.Contains('\\'))
                 return BadRequest("Invalid path.");;
 
-            if (!contentTypeProvider.TryGetContentType(assetPath, out var contentType))
-                return BadRequest("Unsupported file type.");
+            if (!_customContentTypes.TryGetValue(Path.GetExtension(assetPath), out var contentType))
+                if (!contentTypeProvider.TryGetContentType(assetPath, out contentType))
+                    return BadRequest("Unsupported file type.");
 
             if (!assetProvider.TryGetAsset(assetPath, out var content))
                 return NotFound();

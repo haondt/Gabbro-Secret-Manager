@@ -1,0 +1,7 @@
+behavior AutoResize
+	on load send input to me end
+	on input
+		set my.style.height to ''
+		set my.style.height to Math.min(my.scrollHeight, 100) + 'px'
+	end
+end

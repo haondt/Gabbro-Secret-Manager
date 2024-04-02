@@ -11,7 +11,7 @@ table, caption, tbody, tfoot, thead, tr, th, td,
 article, aside, canvas, details, embed, 
 figure, figcaption, footer, header, hgroup, 
 menu, nav, output, ruby, section, summary,
-time, mark, audio, video, button, input {
+time, mark, audio, video, button, input, textarea {
 	margin: 0;
 	padding: 0;
 	border: 0;
@@ -27,6 +27,9 @@ ul {
 
 input {
 	background: none;
+}
+
+input, textarea {
 	border: none;
 	border-bottom: 1px solid var(--color-dark-fg);
 	color: var(--color-bright-fg);
@@ -35,7 +38,11 @@ input {
 	padding-right: 10px;
 }
 
-input:focus-visible {
+textarea {
+	background: var(--color-bright-bg);
+}
+
+input:focus-visible, textarea:focus-visible {
 	border: none;
 	border-bottom: 1px solid var(--color-accent);
 }
@@ -43,7 +50,7 @@ input:focus-visible {
 .flex { display: flex; }
 .flex-col { flex-direction: column; }
 .flex-row { flex-direction: row; }
-.flex-grow-1 { flex-grow: 1; }
+.flex-grow { flex-grow: 1; }
 .flex-wrap { flex-flow: wrap; }
 
 .align-start { align-items: start; }
@@ -56,6 +63,10 @@ input:focus-visible {
 .gap-20 { gap: 20px; }
 .gap-25 { gap: 25px; }
 .gap-30 { gap: 30px; }
+.gap-35 { gap: 35px; }
+.gap-40 { gap: 40px; }
+.gap-45 { gap: 45px; }
+.gap-50 { gap: 50px; }
 
 .mt-5 { margin-top: 5px; }
 .mt-10 { margin-top: 10px; }
@@ -138,7 +149,7 @@ input:focus-visible {
 .fs-20 { font-size: 20pt; }
 .fs-22 { font-size: 22pt; }
 
-.width-100 { width: 100%; }
+.w-full { width: 100%; }
 
 span.spacer { flex: 1 0 auto; }
 
@@ -161,4 +172,6 @@ h2 {
 p {
     font-size: 1.15rem;
 }
+
+.ov-auto { overflow: auto; }
 

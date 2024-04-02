@@ -18,15 +18,18 @@ namespace Gabbro_Secret_Manager.Domain.Services
             {
                 var userKey = await sessionService.GetUserKeyAsync();
                 var availableTags = await secretService.GetAvailableTags(encryptionKey, userKey);
+                var secretKey = data.Query.GetValueOrDefault("key", "");
+                var currentKey = data.Query.GetValueOrDefault<string?>("currentKey", null);
+                var (existsSecret, secret, comments, secretTags) = await secretService.TryGetSecret(encryptionKey, userKey, secretKey);
 
                 var model = new UpsertSecretFormModel
                 {
-                    CurrentKey = data.Query.GetValueOrDefault<string?>("currentKey", null),
+                    CurrentKey = currentKey,
                     TagSuggestions = availableTags,
-                    Key = data.Query.GetValueOrDefault("key", ""),
-                    Value = data.Query.GetValueOrDefault("value", ""),
-                    Comments = data.Query.GetValueOrDefault("comments", ""),
-                    Tags = data.Query.GetValues<string>("tags").Distinct().ToHashSet(),
+                    Key = secretKey,
+                    Value = existsSecret ? secret : "",
+                    Comments = existsSecret ? comments : "",
+                    Tags = existsSecret ? secretTags : []
                 };
                 return await Create(model);
             }

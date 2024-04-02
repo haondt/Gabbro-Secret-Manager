@@ -27,6 +27,7 @@ button {
     font-weight: bold;
 }
 
+
 button:hover:not(:disabled).positive {
     color: var(--color-positive);
 }
@@ -43,6 +44,15 @@ button:not(:disabled) {
 button:hover:not(:disabled) {
     color: var(--color-accent);
     background-color: var(--color-bright-bg);
+}
+
+button.icon {
+    padding: 0;
+    background-color: initial;
+}
+
+
+button.icon {
 }
 
 
@@ -98,6 +108,7 @@ span.tooltip.show {
     box-sizing: border-box;
     width: 100%;
 }
+
 
 button.dropdown.selected {
     color: var(--color-accent);
@@ -188,15 +199,31 @@ button.dropdown.active {
     background: var(--color-accent);
 }
 
+.secret-list-value, .secret-upsert-value {
+    border-bottom: 1px solid var(--color-dark-fg);
+}
+
 .secret-list-value {
     width: 250px;
     word-wrap: break-word;
-    border-bottom: 1px solid var(--color-dark-fg);
     max-height: 50px;
     overflow: auto;
     padding: 10px;
     transition: border 1s ease;
+    white-space: pre-line;
 }
+
+.secret-upsert-value {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    background: var(--color-bright-bg);
+}
+
+textarea.secret-upsert-value {
+    resize: none;
+}
+
+
 
 .secret-list-value:hover {
     border-bottom: 1px solid var(--color-accent);
@@ -223,3 +250,7 @@ td {
     vertical-align: bottom;
 }
 
+#tagBox {
+    border-radius: 8px;
+    padding: 10px;
+}

@@ -7,5 +7,6 @@
         public required string EncryptedValue { get; set; }
         public required string Owner { get; set; }
         public required string InitializationVector { get; set; }
+        public required string Comments { get; set; }
     }
 }

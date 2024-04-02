@@ -28,13 +28,29 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return (decryptedValue, secret.Tags);
         }
 
-        public async Task UpsertSecret(byte[] encryptionKey, string userKey, string key, string value, HashSet<string>? tags = null)
+        public async Task<(bool Success, string Value, string comments, HashSet<string> Tags)> TryGetSecret(byte[] encryptionKey, string userKey, string key)
+        {
+            var secretKey = userKey + "___" + key.GetStorageKey<string>();
+            var (hasSecret, secret) = await storage.TryGet<Secret>(secretKey);
+            if (!hasSecret)
+                return (false, "", "", []);
+
+            var decryptedValue = CryptoService.Decrypt(
+                secret!.EncryptedValue,
+                encryptionKey,
+                secret.InitializationVector);
+
+            return (true, decryptedValue, secret.Comments, secret.Tags);
+        }
+
+        public async Task UpsertSecret(byte[] encryptionKey, string userKey, string key, string value, string comments, HashSet<string>? tags = null)
         {
             memoryCache.Remove(userKey);
             var secretKey = userKey + "___" + key.GetStorageKey<string>();
             var (encryptedValue, initializationVector) = CryptoService.Encrypt(value, encryptionKey);
             var secret = new Secret
             {
+                Comments = comments,
                 Tags = tags ?? [],
                 EncryptedValue = encryptedValue,
                 InitializationVector = initializationVector,

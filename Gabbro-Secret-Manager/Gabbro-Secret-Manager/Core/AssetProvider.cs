@@ -8,7 +8,7 @@ namespace Gabbro_Secret_Manager.Core
         {
             var pathsToCheck = new List<string>
             {
-                Path.Combine(env.ContentRootPath, path),
+                Path.Combine(env.ContentRootPath, "wwwroot", path),
             };
 
             if (!string.IsNullOrEmpty(options.Value.BasePath))

@@ -34,6 +34,7 @@ namespace Gabbro_Secret_Manager.Core
             services.RegisterPage("login", "~/Core/Views/Login.cshtml", () => new LoginModel(), true, false);
             services.RegisterPage("register", "~/Core/Views/Register.cshtml", () => new RegisterModel(), true, false);
             services.RegisterPage("index", "~/Core/Views/Index.cshtml", () => throw new InvalidOperationException(), false, false);
+            services.RegisterPage("toast", "~/Core/Views/Toast.cshtml", () => throw new InvalidOperationException(), false, false);
 
             services.AddSingleton<FileExtensionContentTypeProvider>();
             services.Configure<AuthenticationSettings>(configuration.GetSection(nameof(AuthenticationSettings)));
@@ -46,6 +47,10 @@ namespace Gabbro_Secret_Manager.Core
             services.AddSingleton<IStorage, MemoryStorage>();
             services.Configure<PersistenceSettings>(configuration.GetSection(nameof(PersistenceSettings)));
             services.AddSingleton<IStorageService, StorageService>();
+
+            services.AddScoped<ToastResponseService>();
+            services.AddScoped<ToastErrorFilter>();
+            services.AddScoped<ValidationFilter>();
 
             return services;
         }

@@ -5,8 +5,9 @@ using Microsoft.Extensions.Options;
 
 namespace Gabbro_Secret_Manager.Controllers
 {
-    [ApiController]
     [Produces("text/html")]
+    [ServiceFilter(typeof(ToastErrorFilter))]
+    [ServiceFilter(typeof(ValidationFilter))]
     public class BaseController(PageRegistry pageRegistry, IOptions<IndexSettings> options, ISessionService sessionService) : Controller
     {
         protected Task<IActionResult> GetView(string page, Func<IPageModel> modelFactory) => GetView(page, () => Task.FromResult(modelFactory()));
@@ -40,7 +41,7 @@ namespace Gabbro_Secret_Manager.Controllers
             if (!string.IsNullOrEmpty(pageEntry.SetUrl))
             {
                 Response.Headers["HX-Push-Url"] = pageEntry.SetUrl;
-                Response.Headers["HX-Trigger"] = $"{{\"onNavigate\":{{\"{NavigationBarModel.CurrentViewKey}\":\"{pageEntry.Page}\"}}}}";
+                Response.Headers["HX-Trigger-After-Settle"] = $"{{\"on_navigate\":{{\"{NavigationBarModel.CurrentViewKey}\":\"{pageEntry.Page}\"}}}}";
             }
             return View(pageEntry.ViewPath, pageEntry.Model);
         }

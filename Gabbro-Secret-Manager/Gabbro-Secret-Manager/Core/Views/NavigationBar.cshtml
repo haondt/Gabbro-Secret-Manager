@@ -2,19 +2,15 @@
 @model NavigationBarModel
 
 <ul id="navigationBar" class="flex flex-row gap-20" _="
-    on onNavigate(@NavigationBarModel.CurrentViewKey) from body
+    on on_navigate(@NavigationBarModel.CurrentViewKey) from body
+        log the event
         set my @@hx-vals to `{&quot;@NavigationBarModel.CurrentViewKey&quot;:&quot;$@NavigationBarModel.CurrentViewKey&quot;}`
         trigger refreshNavigationBar on me
-" hx-trigger="refreshNavigationBar" hx-get="/partials/navigationBar" hx-swap="outerHTML">
+    end
+" hx-trigger="refreshNavigationBar" hx-get="/partials/navigationBar" hx-swap="outerHTML" >
     @foreach (var (pageName, isSelected) in Model.Pages)
     {
         <li class="navigation @(isSelected ? "selected" : "")">
-            <!--
-
-            <button class="navigation @(isSelected ? "selected" : "")"
-                _="on click send onNavigate(@NavigationBarModel.CurrentViewKey:'@pageName') to navigationBar"
-                >@pageName.ToString().ToLower()</button>
-            -->
             <button class="navigation @(isSelected ? "selected" : "")"
                 hx-get="/partials/@pageName" hx-target="#content" hx-swap="innerHTML"
                 >@pageName.ToString().ToLower()</button>

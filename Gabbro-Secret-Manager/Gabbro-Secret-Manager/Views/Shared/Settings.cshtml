@@ -7,11 +7,16 @@
     </div>
     <form>
         <input name="name" placeholder="name"/>
-        <button>add api key</button>
+        <button type="submit">add api key</button>
     </form>
-    <div>
-
-
-    </div>
+    <ul>
+        @foreach(var apiKey in Model.ApiKeys)
+        {
+            <l1>
+                <div class="secret-list-value">@apiKey</div>
+                <button>delete</button>
+            </l1>
+        }
+    </ul>
 </div>
 

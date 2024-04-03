@@ -50,6 +50,9 @@ button.icon {
     padding: 0;
     background-color: initial;
 }
+.button.icon {
+    background-color: initial;
+}
 
 
 button.icon {
@@ -253,4 +256,27 @@ td {
 #tagBox {
     border-radius: 8px;
     padding: 10px;
+}
+
+.toast {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    background-color: var(--color-bright-bg);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.toast.created {
+    opacity: 1;
+}
+
+.toast.error {
+    background: var(--color-negative);
+}
+
+.toast button:hover {
+    background-color: initial;
+}
+.toast.error button.icon:not(:hover) {
+    color: var(--color-bright-fg);
 }

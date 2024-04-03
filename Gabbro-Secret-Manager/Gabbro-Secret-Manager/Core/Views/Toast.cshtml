@@ -1,0 +1,18 @@
+﻿@using Gabbro_Secret_Manager.Core
+@using Gabbro_Secret_Manager.Core.Views
+@model ToastModel
+
+@foreach(var toast in Model.Toasts)
+{
+    <div class="toast @if(toast.Severity == ToastSeverity.Error) { <text>error</text> }" 
+        _="on load add .created to me wait 5s remove .created from me wait 1s send deleted to me end
+           on deleted remove me" style="width: 300px;">
+        <div class="flex flex-row j-between">
+            <h4>@toast.Severity.ToString()</h4>
+            <button class="icon" type="button" _="on click send deleted to the closest <div.toast /> end">
+                <i class="fa-solid fa-x fs-12"></i>
+            </button>
+        </div>
+        <p class="fs-12">@toast.Message</p>
+    </div>
+}

@@ -1,5 +1,6 @@
 using Gabbro_Secret_Manager.Core;
 using Gabbro_Secret_Manager.Domain;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,11 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddCoreServices(builder.Configuration)
     .AddGabbroServices(builder.Configuration)
     .RegisterPages();
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
+});
 
 var app = builder.Build();
 app.UseStaticFiles();

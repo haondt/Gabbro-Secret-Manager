@@ -1,12 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using Gabbro_Secret_Manager.Core;
 
 namespace Gabbro_Secret_Manager.Views.Shared
 {
-    public class SettingsModel : PageModel
+    public class SettingsModel : IPageModel
     {
-        public void OnGet()
-        {
-        }
+        public List<string> ApiKeys { get; set; } = [];
     }
 }

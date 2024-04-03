@@ -104,12 +104,12 @@ input:focus-visible, textarea:focus-visible {
 .padding-25 { padding: 25px; }
 .padding-30 { padding: 30px; }
 
-.margin-5 { margin: 5px; }
-.margin-10 { margin: 10px; }
-.margin-15 { margin: 15px; }
-.margin-20 { margin: 20px; }
-.margin-25 { margin: 25px; }
-.margin-30 { margin: 30px; }
+.m-5 { margin: 5px; }
+.m-10 { margin: 10px; }
+.m-15 { margin: 15px; }
+.m-20 { margin: 20px; }
+.m-25 { margin: 25px; }
+.m-30 { margin: 30px; }
 
 .pt-5 { padding-top: 5px; }
 .pt-10 { padding-top: 10px; }
@@ -153,8 +153,10 @@ input:focus-visible, textarea:focus-visible {
 
 span.spacer { flex: 1 0 auto; }
 
-.position-absolute { position: absolute; }
-.position-relative { position: relative; }
+.pos-absolute { position: absolute; }
+.pos-relative { position: relative; }
+.pos-sticky { position: sticky; }
+.pos-fixed { position: fixed; }
 
 .display-none { display: none; }
 

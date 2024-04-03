@@ -33,6 +33,7 @@
                     _="on click
                         toggle .selected
                         toggle @@selected on the next <input/>
+                        wait 0s -- allow the input to actually update before sending htmx event
                         trigger secretsFilterUpdate
                 ">@option.Key</label>
                 <input type="checkbox" id="tag-select-input-@option.Key" name="@option.Key" style="display: none;"

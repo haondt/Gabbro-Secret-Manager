@@ -1,15 +1,15 @@
 ﻿@model Gabbro_Secret_Manager.Views.Shared.HomeModel
 <div class="page flex flex-col align-center" id="home">
-    <form class="card flex flex-col align-center" style="max-width: 1000px;">
-        <div class="flex flex-row">
-            <input type="text" name="search" _="on keyup send secretsFilterUpdate" placeholder="Search" value="@Model.SearchString"/>
+    <div class="card flex flex-col align-center" style="max-width: 1000px;">
+        <form class="flex flex-row w-full" hx-trigger="secretsFilterUpdate" hx-post="/partials/secretList" hx-target="#secretList" hx-swap="outerHTML">
+            <input type="text" class="flex-grow" name="search" _="on keyup trigger secretsFilterUpdate" placeholder="Search" value="@Model.SearchString"/>
             @await Html.PartialAsync("TagSelect", Model.Secrets.CreateTagSelectModel())
             <button type="button" hx-get="/partials/upsertSecretForm" hx-target="#home" hx-swap="outerHTML">
                 <i class="fa-solid fa-plus"></i>
                 Add Secret
             </button>
-        </div>
+        </form>
         @await Html.PartialAsync("SecretList", Model.Secrets)
-    </form>
+    </div>
 </div>
 

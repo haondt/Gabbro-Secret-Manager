@@ -1,5 +1,6 @@
 ﻿using Gabbro_Secret_Manager.Core;
 using Gabbro_Secret_Manager.Core.Persistence;
+using Gabbro_Secret_Manager.Domain.Models;
 using Gabbro_Secret_Manager.Domain.Persistence;
 using Gabbro_Secret_Manager.Domain.Services;
 using Gabbro_Secret_Manager.Views.Shared;
@@ -42,8 +43,8 @@ namespace Gabbro_Secret_Manager.Domain
                 data => new ConfirmDeleteSecretListEntryModel(data.Query.GetValue<string>(SecretListEntryModel.SecretNameKey)),
                 false, false);
             services.AddScoped<IPageEntryFactory, SecretListEntryFactory>();
+            services.AddScoped<IPageEntryFactory, SecretListFactory>();
             services.RegisterPage("upsertSecretFormTag", "UpsertSecretFormTag", data => new UpsertSecretFormTagModel { Value = data.Query.GetValue<string>("value") });
-
             return services;
         }
     }

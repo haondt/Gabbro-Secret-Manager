@@ -10,9 +10,9 @@ namespace Gabbro_Secret_Manager.Core
             usernameReason = "";
             passwordReason = "";
             var isValid = true;
-            if (string.IsNullOrEmpty(username) || username.Length < 3)
+            if (string.IsNullOrEmpty(username) || username.Length < 6)
             {
-                usernameReason = "Username must be at least 3 characters";
+                usernameReason = "Username must be at least 6 characters";
                 isValid = false;
             }
             if (string.IsNullOrEmpty(password) || password.Length < 8)
@@ -49,7 +49,20 @@ namespace Gabbro_Secret_Manager.Core
             return (true, "", "", user, userKey);
         }
 
-        public async Task<(bool Success, string sessionToken, DateTime expiry, string userKey)> TryAuthenticateUser(string username, string password)
+        public async Task<bool> TryAuthenticateUser(string userKey, string password)
+        {
+            var (foundUser, user) = await storage.TryGet<User>(userKey);
+            if (!foundUser)
+                return false;
+
+            var foundHash = crypto.HashPassword(password, user!.PasswordSalt);
+            if (!foundHash.Equals(user.PasswordHash))
+                return false;
+
+            return true;
+        }
+
+        public async Task<(bool Success, string sessionToken, DateTime expiry, string userKey)> TryAuthenticateUserAndGenerateSessionToken(string username, string password)
         {
             if (!ValidateCredentials(username, password, out _, out _))
                 return (false, "", default, "");

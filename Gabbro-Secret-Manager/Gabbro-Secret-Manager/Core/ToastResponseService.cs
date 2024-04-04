@@ -34,5 +34,6 @@ namespace Gabbro_Secret_Manager.Core
         {
             return Overwrite([(severity, message)], httpContext, setActionResult);
         }
+
     }
 }

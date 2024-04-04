@@ -45,5 +45,22 @@ namespace Gabbro_Secret_Manager.Controllers
             }
             return View(pageEntry.ViewPath, pageEntry.Model);
         }
+        protected async Task<IActionResult> GetToast(List<(ToastSeverity Severity, string Message)> toasts)
+        {
+            Response.Headers.Clear();
+            Response.Headers.Append("HX-Reswap", "afterbegin");
+            Response.Headers.Append("HX-Retarget", "#toast-container");
+            Response.StatusCode = 200;
+
+            var pageEntryFactory = pageRegistry.GetPageFactory("Toast");
+            var pageEntry = await pageEntryFactory.Create(new ToastModel
+            {
+                Toasts = toasts
+            });
+
+            return View(pageEntry.ViewPath, pageEntry.Model);
+        }
+
+        protected Task<IActionResult> GetToastView(ToastSeverity severity, string message) => GetToast([(severity, message)]);
     }
 }

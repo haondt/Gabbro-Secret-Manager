@@ -116,11 +116,22 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
             {
                 var data = await GetDataAsync();
                 return data.Values
-                .Select(kvp => kvp.Value)
-                .Where(v => v != null && v is Secret)
-                .Cast<Secret>()
-                .Where(s => s.Owner.Equals(userKey))
-                .ToList();
+                    .Select(kvp => kvp.Value)
+                    .Where(v => v != null && v is Secret)
+                    .Cast<Secret>()
+                    .Where(s => s.Owner.Equals(userKey))
+                    .ToList();
+            });
+
+        public Task<Dictionary<string, ApiKey>> GetApiKeys(string userKey) =>
+            TryAcquireSemaphoreAnd(async () =>
+            {
+                var data = await GetDataAsync();
+                return data.Values
+                    .Where(kvp => kvp.Value != null && kvp.Value is ApiKey)
+                    .Select(kvp => (kvp.Key, (ApiKey)kvp.Value!))
+                    .Where(t => t.Item2.Owner.Equals(userKey))
+                    .ToDictionary(t => t.Key, t => t.Item2);
             });
 
         public Task Set<T>(string key, T value) =>

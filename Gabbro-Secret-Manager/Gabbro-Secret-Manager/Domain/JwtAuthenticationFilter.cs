@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Gabbro_Secret_Manager.Domain
 {
-    public class JwtAuthenticationFilter(JwtService jwtService) : ActionFilterAttribute
+    public class JwtAuthenticationFilter(JweService jwtService) : ActionFilterAttribute
     {
         /*
         public override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)

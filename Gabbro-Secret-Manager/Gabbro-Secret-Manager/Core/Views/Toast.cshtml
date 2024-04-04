@@ -5,7 +5,7 @@
 @foreach(var toast in Model.Toasts)
 {
     <div class="toast @if(toast.Severity == ToastSeverity.Error) { <text>error</text> }" 
-        _="on load add .created to me wait 5s remove .created from me wait 1s send deleted to me end
+        _="on load add .created to me then wait 5s then remove .created from me then wait for animationend then send deleted to me end
            on deleted remove me" style="width: 300px;">
         <div class="flex flex-row j-between">
             <h4>@toast.Severity.ToString()</h4>

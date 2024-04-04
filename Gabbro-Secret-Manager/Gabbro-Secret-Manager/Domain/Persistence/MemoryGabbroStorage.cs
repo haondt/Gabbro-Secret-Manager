@@ -14,5 +14,15 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
                 .ToList();
             return Task.FromResult(secrets);
         }
+
+        public Task<Dictionary<string, ApiKey>> GetApiKeys(string userKey)
+        {
+            var apiKeys = _storage
+                .Where(kvp => kvp.Value != null && kvp.Value is ApiKey)
+                .Select(kvp => (kvp.Key, (ApiKey)kvp.Value!))
+                .Where(t => t.Item2.Owner.Equals(userKey))
+                .ToDictionary(t => t.Key, t => t.Item2);
+            return Task.FromResult(apiKeys);
+        }
     }
 }

@@ -14,6 +14,7 @@ namespace Gabbro_Secret_Manager.Controllers
         UserDataService userDataService,
         PageRegistry pageRegistry,
         IOptions<IndexSettings> indexOptions,
+        ApiKeyService apiKeyService,
         ISessionService sessionService,
         EncryptionKeyService encryptionKeyService,
         SecretService secretService) : BaseController(pageRegistry, indexOptions, sessionService)
@@ -33,6 +34,26 @@ namespace Gabbro_Secret_Manager.Controllers
             return (true, null);
         }
 
+        [HttpPost("modal-validate-password")]
+        public async Task<IActionResult> ValidatePassword([FromForm] string? password)
+        {
+            if (await VerifySession() is (false, var invalidSessionResponse))
+                return Redirect(_indexSettings.AuthenticationPage);
+
+            var session = await userService.GetSession(_sessionService.SessionToken!);
+            if (!await userService.TryAuthenticateUser(session.UserKey, password ?? ""))
+            {
+                return await GetView("passwordReentryModal", () => new PasswordReentryModalModel
+                {
+                    Error = "incorrect password",
+                    Text = password ?? ""
+                });
+            }
+
+            Response.Headers["HX-Trigger-After-Settle"] = $"{{\"validatedpassword\":\"{password}\"}}";
+            return await GetView("passwordReentryModal", () => new PasswordReentryModalModel { Text = password ?? ""});
+        }
+
         [HttpPost("refresh-encryption-key")]
         public async Task<IActionResult> RefreshEncryptionKey([FromForm] string? password)
         {
@@ -41,12 +62,12 @@ namespace Gabbro_Secret_Manager.Controllers
 
             var session = await userService.GetSession(_sessionService.SessionToken!);
             var user = await userService.GetUser(session.UserKey);
-            var (result, sessionToken, sessionExpiry, _) = await userService.TryAuthenticateUser(user.Username, password ?? "");
+            var (result, sessionToken, sessionExpiry, _) = await userService.TryAuthenticateUserAndGenerateSessionToken(user.Username, password ?? "");
             if (!result)
             {
                 return await GetView("passwordReentryForm", () => new PasswordReentryFormModel
                 {
-                    Error = "Incorrect password",
+                    Error = "incorrect password",
                     Text = password ?? ""
                 });
             }
@@ -120,6 +141,48 @@ namespace Gabbro_Secret_Manager.Controllers
                 await secretService.DeleteSecret(userKey, currentKey);
 
             return await GetView(_indexSettings.HomePage);
+        }
+
+        [HttpPost("create-api-key")]
+        public async Task<IActionResult> CreateApiKey([FromForm] string name)
+        {
+            if (await VerifySession() is (false, var invalidSessionResponse))
+                return invalidSessionResponse!;
+
+            if (!Request.Headers.TryGetValue("HX-Prompt", out var values) || values.Count != 1 || string.IsNullOrEmpty(values.Single()))
+                return await GetToastView(ToastSeverity.Error, "Unable to retrieve password from HX-Prompt");
+            var password = values.Single()!;
+
+            var session = await userService.GetSession(_sessionService.SessionToken!);
+            if (!await userService.TryAuthenticateUser(session.UserKey, password))
+                return await GetToastView(ToastSeverity.Error, "incorrect password");
+            var userData = await userDataService.GetUserData(session.UserKey);
+
+            var encryptionKey = encryptionKeyService.CreateApiEncryptionKey(session.UserKey, password, userData.EncryptionKeySettings);
+            var (token, id, apiKey) = await apiKeyService.CreateApiTokenAsync(session.UserKey, name, encryptionKey);
+
+            return await GetView("settingsPage", async () =>
+            {
+                var apiKeys = await apiKeyService.GetApiKeys(session.UserKey);
+                var model = new SettingsModel
+                {
+                    ShowNewKeyWarning = true,
+                    ApiKeys = apiKeys.Select(kvp =>
+                    {
+                        var apiKey = new ViewApiKey
+                        {
+                            Id = kvp.Key,
+                            Name = kvp.Value.Name,
+                        };
+                        if (kvp.Key == id)
+                            apiKey.Value = token;
+
+                        return apiKey;
+                    }).ToList()
+                };
+
+                return model;
+            });
         }
     }
 }

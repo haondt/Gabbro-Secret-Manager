@@ -3,7 +3,6 @@
 
 <ul id="navigationBar" class="flex flex-row gap-20" _="
     on on_navigate(@NavigationBarModel.CurrentViewKey) from body
-        log the event
         set my @@hx-vals to `{&quot;@NavigationBarModel.CurrentViewKey&quot;:&quot;$@NavigationBarModel.CurrentViewKey&quot;}`
         trigger refreshNavigationBar on me
     end

@@ -31,6 +31,9 @@ namespace Gabbro_Secret_Manager.Domain.Services
         {
             return _keys.TryGetValue(sessionToken, out key);
         }
+
+        public byte[] CreateApiEncryptionKey(string userKey, string password, EncryptionKeySettings encryptionKeySettings) => GenerateEncryptionKey(userKey, password, encryptionKeySettings);
+
         public byte[] Get(string sessionToken) => _keys[sessionToken];
 
         public byte[] GetOrCreateEncryptionKey(string sessionToken, string userKey, string password, EncryptionKeySettings encryptionKeySettings)

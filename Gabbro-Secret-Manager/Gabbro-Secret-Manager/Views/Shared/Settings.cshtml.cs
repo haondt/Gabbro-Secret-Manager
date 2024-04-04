@@ -4,6 +4,14 @@ namespace Gabbro_Secret_Manager.Views.Shared
 {
     public class SettingsModel : IPageModel
     {
-        public List<string> ApiKeys { get; set; } = [];
+        public List<ViewApiKey> ApiKeys { get; set; } = [];
+        public bool ShowNewKeyWarning { get; set; } = false;
+    }
+
+    public class ViewApiKey
+    {
+        public required string Id { get; set; }
+        public required string Name { get; set; }
+        public string? Value { get; set; }
     }
 }

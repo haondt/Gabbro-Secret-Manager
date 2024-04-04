@@ -1,22 +1,50 @@
 ﻿@model Gabbro_Secret_Manager.Views.Shared.SettingsModel
-<div id="settings">
-    <button>log out</button>
-    <div>
-        <button>export data</button>
-        <button>import data</button>
+<div class="page flex flex-col align-center" id="settings">
+    <div class="card flex flex-col align-center" style="max-width: 1000px;">
+        <div id="settings">
+            <div class="flex flex-row align-center gap-10">
+                <button hx-get="account/logout" hx-target="#settings" hx-swap="outerHTML">log out</button>
+                <a href="api/export-data/secrets.json" download onclick="return confirm('This export contains your secret data in and unencrypted format. You should not store or send the exported file over unsecure channels (such as email). Delete it immediately after you are done using it.')">
+                    <button>export data</button>
+                </a>
+            </div>
+            <form hx-post="actions/create-api-key" hx-prompt="please enter your password to confirm creation of a new api key" hx-target="#settings" hx-swap="outerHTML">
+                <input name="name" placeholder="name" />
+            </form>
+                <button type="button" hx-get="components/modal" hx-vals='{"content": "passwordReentryModal", "source": "settings"}' hx-trigger="startcreatekey"
+                    _="on modalFinished from body
+                            if the event's detail.source is 'settings'
+                                log the event
+                    ">create new key</button>
+            <div>
+                @foreach(var apiKey in Model.ApiKeys)
+                {
+                    <div>
+                        <div>
+                            <div class="secret-list-value">@apiKey.Name</div>
+                            @if (!string.IsNullOrEmpty(apiKey.Value))
+                            {
+                                <div class="secret-list-value fold">@apiKey.Value</div>
+                                <div class="flex flex-col align-center">
+                                    <button type="button"
+                                        _="on click
+                                            writeText('@apiKey.Value') into the navigator's clipboard
+                                            add .show to the next .tooltip
+                                                then wait 0.8s
+                                                then remove .show from the next .tooltip
+                                        "><i class="fa-regular fa-copy"></i></button>
+                                    <span class="tooltip">copied!</span>
+                                </div>
+                            }
+                            <button type="button">delete</button>
+                        </div>
+                        <div>
+                            <button type="button" hx-vals='{"id": "@apiKey.Id"}'>delete</button>
+                            <button type="button">cancel</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
-    <form>
-        <input name="name" placeholder="name"/>
-        <button type="submit">add api key</button>
-    </form>
-    <ul>
-        @foreach(var apiKey in Model.ApiKeys)
-        {
-            <l1>
-                <div class="secret-list-value">@apiKey</div>
-                <button>delete</button>
-            </l1>
-        }
-    </ul>
 </div>
-

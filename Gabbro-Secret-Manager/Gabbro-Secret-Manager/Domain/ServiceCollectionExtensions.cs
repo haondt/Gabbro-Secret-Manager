@@ -4,6 +4,7 @@ using Gabbro_Secret_Manager.Domain.Models;
 using Gabbro_Secret_Manager.Domain.Persistence;
 using Gabbro_Secret_Manager.Domain.Services;
 using Gabbro_Secret_Manager.Views.Shared;
+using Microsoft.Extensions.Options;
 
 namespace Gabbro_Secret_Manager.Domain
 {
@@ -21,9 +22,13 @@ namespace Gabbro_Secret_Manager.Domain
             services.AddSingleton<UserDataService>();
             services.AddScoped<ILifetimeHook, LoginHook>();
             services.AddScoped<ILifetimeHook, RegisterHook>();
-            
 
-           return services;
+            services.AddSingleton<ApiKeyService>();
+            services.Configure<JweSettings>(configuration.GetSection(nameof(JweSettings)));
+            JweSettings.Validate(services.AddOptions<JweSettings>()).ValidateOnStart();
+            services.AddSingleton<JweService>();
+
+            return services;
         }
 
         public static IServiceCollection RegisterPages(this IServiceCollection services)
@@ -37,6 +42,14 @@ namespace Gabbro_Secret_Manager.Domain
                 ModelFactory = (_, _) => new PasswordReentryFormModel(),
                 RequiresAuthentication = false
             });
+            services.AddScoped<IPageEntryFactory, PageEntryFactory>(_ => new PageEntryFactory
+            {
+                Page = "passwordReentryModal",
+                SetUrl = "",
+                ViewPath = "PasswordReentryModal",
+                ModelFactory = (_, _) => new PasswordReentryModalModel(),
+                RequiresAuthentication = false
+            });
             services.AddScoped<IPageEntryFactory, UpsertSecretFormFactory>();
             services.RegisterPage("confirmDeleteSecretListEntry",
                 "ConfirmDeleteSecretListEntry",
@@ -44,6 +57,7 @@ namespace Gabbro_Secret_Manager.Domain
                 false, false);
             services.AddScoped<IPageEntryFactory, SecretListEntryFactory>();
             services.AddScoped<IPageEntryFactory, SecretListFactory>();
+            services.AddScoped<IPageEntryFactory, SettingsPageFactory>();
             services.RegisterPage("upsertSecretFormTag", "UpsertSecretFormTag", data => new UpsertSecretFormTagModel { Value = data.Query.GetValue<string>("value") });
             return services;
         }

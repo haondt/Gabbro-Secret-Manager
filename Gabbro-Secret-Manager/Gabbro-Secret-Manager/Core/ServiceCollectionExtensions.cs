@@ -35,6 +35,7 @@ namespace Gabbro_Secret_Manager.Core
             services.RegisterPage("register", "~/Core/Views/Register.cshtml", () => new RegisterModel(), true, false);
             services.RegisterPage("index", "~/Core/Views/Index.cshtml", () => throw new InvalidOperationException(), false, false);
             services.RegisterPage("toast", "~/Core/Views/Toast.cshtml", () => throw new InvalidOperationException(), false, false);
+            services.RegisterPage("modal", "~/Core/Views/Modal.cshtml", () => throw new InvalidOperationException(), false, false);
 
             services.AddSingleton<FileExtensionContentTypeProvider>();
             services.Configure<AuthenticationSettings>(configuration.GetSection(nameof(AuthenticationSettings)));

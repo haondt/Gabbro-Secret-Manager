@@ -17,7 +17,7 @@ namespace Gabbro_Secret_Manager.Controllers
         {
             username ??= "";
             password ??= "";
-            var (result, sessionToken, sessionExpiry ,userKey) = await userService.TryAuthenticateUser(username, password);
+            var (result, sessionToken, sessionExpiry ,userKey) = await userService.TryAuthenticateUserAndGenerateSessionToken(username, password);
             if (!result)
                 return await GetView("login", () => new LoginModel
                 {
@@ -42,7 +42,7 @@ namespace Gabbro_Secret_Manager.Controllers
                 Response.Cookies.ExpireAuthentication();
             }
 
-            return await GetView(_indexSettings.HomePage);
+            return await GetView(_indexSettings.AuthenticationPage);
         }
 
         [HttpPost("register")]

@@ -18,7 +18,7 @@ namespace Gabbro_Secret_Manager.Core
                 Toasts = toasts
             });
 
-            var result = pageEntry.CreateView();
+            var result = pageEntry.CreateView(httpContext.Response.Headers);
             setActionResult(result);
         }
 

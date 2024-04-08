@@ -2,6 +2,7 @@
 using Gabbro_Secret_Manager.Core.DynamicForm;
 using Gabbro_Secret_Manager.Core.Views;
 using Gabbro_Secret_Manager.Domain;
+using Gabbro_Secret_Manager.Domain.DynamicFormFactories;
 using Gabbro_Secret_Manager.Domain.Models;
 using Gabbro_Secret_Manager.Domain.Services;
 using Gabbro_Secret_Manager.Views.Shared;
@@ -106,41 +107,6 @@ namespace Gabbro_Secret_Manager.Controllers
             return await helper.GetView(this, _indexSettings.HomePage);
         }
 
-        // TODO
-        private Task<PageEntry> GetApiKeyPasswordConfirmationForm(string name, string? error = null)
-        {
-            return _pageRegistry.GetPageFactory("dynamicForm").Create(new DynamicFormModel
-            {
-                Title = "please confirm password to continue",
-                HxPost = "actions/create-api-key/complete",
-                HxVals = $"{{\"name\":\"{name}\"}}",
-                Items =
-                [
-                    new DynamicFormInput
-                    {
-                        Name = "password",
-                        Type = DynamicFormInputType.Password,
-                        Autocomplete = "current-password",
-                        Error = error
-                    }
-                ],
-                Buttons = 
-                [
-                    new DynamicFormButton
-                    {
-                           Text = "submit",
-                           Type = DynamicFormButtonType.Submit
-                    },
-                    new DynamicFormButton
-                    {
-                           Text = "cancel",
-                           Type = DynamicFormButtonType.Button,
-                           HyperTrigger = "closeModal"
-                    }
-                ],
-            });
-        }
-
         [HttpGet("export-data")]
         public async Task<IActionResult> ExportData()
         {
@@ -178,7 +144,7 @@ namespace Gabbro_Secret_Manager.Controllers
             return new OkObjectResult(result);
         }
 
-        [HttpPost("create-api-key/init")]
+        [HttpPost("create-api-key")]
         public async Task<IActionResult> CreateApiKey([FromForm] string? name)
         {
             if (await helper.VerifySession(this) is (false, var invalidSessionResponse))
@@ -196,7 +162,7 @@ namespace Gabbro_Secret_Manager.Controllers
                     .ReSwap("outerHTML"));
             }
 
-            return await helper.GetModal(this, await GetApiKeyPasswordConfirmationForm(name), false);
+            return await helper.GetModal(this, new ApiKeyPasswordConfirmationDynamicFormFactory(name), false);
         }
 
         [HttpPost("create-api-key/complete")]
@@ -207,7 +173,8 @@ namespace Gabbro_Secret_Manager.Controllers
 
             var session = await userService.GetSession(_sessionService.SessionToken!);
             if (!await userService.TryAuthenticateUser(session.UserKey, password))
-                return await helper.GetModal(this, await GetApiKeyPasswordConfirmationForm(name, "incorrect password"), false);
+                return await helper.GetView(this, new ApiKeyPasswordConfirmationDynamicFormFactory(name, "incorrect password"));
+                //return await helper.GetModal(this, new ApiKeyPasswordConfirmationDynamicFormFactory(name, "incorrect password"), false);
             var userData = await userDataService.GetUserData(session.UserKey);
 
             var encryptionKey = encryptionKeyService.CreateApiEncryptionKey(session.UserKey, password, userData.EncryptionKeySettings);

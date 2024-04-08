@@ -20,8 +20,10 @@ namespace Gabbro_Secret_Manager.Core
             return controller.View(ViewPath, Model);
         }
 
-        public ViewResult CreateView()
+        public ViewResult CreateView(IHeaderDictionary response)
         {
+            ConfigureResponse?.Invoke(response);
+
             var vdd = new ViewDataDictionary(
                 new EmptyModelMetadataProvider(),
                 new ModelStateDictionary())

@@ -13,7 +13,7 @@ namespace Gabbro_Secret_Manager.Domain.DynamicFormFactories
                 [
                     new DynamicFormText
                     {
-                        Value = "please reenter password to continue"
+                        Value = "please re-enter password to continue"
                     },
                     new DynamicFormInput
                     {

@@ -24,6 +24,18 @@ namespace Gabbro_Secret_Manager.Core
             return modal.CreateView(controller);
         }
 
+        public Task<IActionResult> GetModal(BaseController controller, IDynamicFormFactory content, bool allowClickOut = false) => GetModal(controller, "dynamicForm", content, allowClickOut);
+
+        public async Task<IActionResult> GetModal(BaseController controller, string page, IDynamicFormFactory content, bool allowClickOut = false)
+        {
+            var modal = await pageRegistry.GetPageFactory("modal").Create(new ModalModel
+            {
+                Content = await pageRegistry.GetPageFactory(page).Create(content.Create()),
+                AllowClickOut = allowClickOut
+            });
+            return modal.CreateView(controller);
+        }
+
         public async Task<IActionResult> GetToastView(BaseController controller, List<(ToastSeverity Severity, string Message)> toasts)
         {
             controller.Response.StatusCode = 200;
@@ -85,6 +97,8 @@ namespace Gabbro_Secret_Manager.Core
 
         public Task<IActionResult> GetView(BaseController controller, string page, IDynamicFormFactory dynamicFormFactory, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)
             => GetView(controller, page, () => Task.FromResult<IPageModel>(dynamicFormFactory.Create()), responseOptions);
+        public Task<IActionResult> GetView(BaseController controller, IDynamicFormFactory dynamicFormFactory, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)
+            => GetView(controller, "dynamicForm", () => Task.FromResult<IPageModel>(dynamicFormFactory.Create()), responseOptions);
 
         public Task<IActionResult> GetView(BaseController controller, string page, Func<IPageModel> modelFactory, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)
             => GetView(controller, page, () => Task.FromResult(modelFactory()), responseOptions);

@@ -1,5 +1,5 @@
 ﻿using Gabbro_Secret_Manager.Core;
-using Gabbro_Secret_Manager.Core.DynamicForms;
+using Gabbro_Secret_Manager.Core.DynamicFormFactories;
 using Gabbro_Secret_Manager.Core.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -50,12 +50,7 @@ namespace Gabbro_Secret_Manager.Controllers
             password ??= "";
             var (result, usernameReason, passwordReason, user, userKey) = await userService.TryRegisterUser(username, password);
             if (!result)
-                return await helper.GetView(this, "register", () => new RegisterModel
-                {
-                    Username = username,
-                    UsernameError = usernameReason,
-                    PasswordError = passwordReason
-                });
+                return await helper.GetView(this, "register", new RegisterDynamicFormFactory(username, usernameReason, passwordReason));
 
             await lifetimeHookService.OnRegisterAsync(user!, userKey);
             return await helper.GetView(this, _indexSettings.AuthenticationPage);

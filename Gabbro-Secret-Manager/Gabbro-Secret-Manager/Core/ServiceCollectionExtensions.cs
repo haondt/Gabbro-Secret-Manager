@@ -1,5 +1,5 @@
 ﻿using Gabbro_Secret_Manager.Core.DynamicForm;
-using Gabbro_Secret_Manager.Core.DynamicForms;
+using Gabbro_Secret_Manager.Core.DynamicFormFactories;
 using Gabbro_Secret_Manager.Core.Persistence;
 using Gabbro_Secret_Manager.Core.Views;
 using Microsoft.AspNetCore.StaticFiles;
@@ -33,9 +33,8 @@ namespace Gabbro_Secret_Manager.Core
             services.RegisterPage("loader", "~/Core/Views/Loader.cshtml", () => throw new InvalidOperationException(), false);
             services.RegisterPage("dynamicForm", "~/Core/Views/DynamicForm.cshtml", () => throw new InvalidOperationException(), false);
             services.RegisterPage("dynamicFormWithAuthentication", "~/Core/Views/DynamicForm.cshtml", () => throw new InvalidOperationException(), true);
-            //services.RegisterPage("login", "~/Core/Views/Login.cshtml", () => new LoginModel(), false, r => r.ConfigureForPage("login"));
             services.RegisterPage("login", "~/Core/Views/DynamicForm.cshtml", new LoginDynamicFormFactory("").Create, false, r => r.ConfigureForPage("login"));
-            services.RegisterPage("register", "~/Core/Views/Register.cshtml", () => new RegisterModel(), false, r => r.ConfigureForPage("register"));
+            services.RegisterPage("register", "~/Core/Views/DynamicForm.cshtml", new RegisterDynamicFormFactory("").Create, false, r => r.ConfigureForPage("register"));
             services.RegisterPage("index", "~/Core/Views/Index.cshtml", () => throw new InvalidOperationException(), false);
             services.RegisterPage("toast", "~/Core/Views/Toast.cshtml", () => throw new InvalidOperationException(), false,
                 r => r.ReSwap("afterbegin").ReTarget("#toast-container"));

@@ -3,7 +3,10 @@ using Gabbro_Secret_Manager.Core.Views;
 
 namespace Gabbro_Secret_Manager.Core.DynamicFormFactories
 {
-    public class LoginDynamicFormFactory(string username, string? error = null) : IDynamicFormFactory
+    public class RegisterDynamicFormFactory(
+        string username,
+        string? usernameError = null,
+        string? passwordError = null) : IDynamicFormFactory
     {
         public DynamicFormModel Create()
         {
@@ -20,7 +23,8 @@ namespace Gabbro_Secret_Manager.Core.DynamicFormFactories
                         Type = DynamicFormInputType.Text,
                         Autocomplete = "username",
                         Value = username,
-                        Label = "username"
+                        Label = "username",
+                        Error = usernameError
                     },
                     new DynamicFormInput
                     {
@@ -28,7 +32,7 @@ namespace Gabbro_Secret_Manager.Core.DynamicFormFactories
                         Type = DynamicFormInputType.Password,
                         Autocomplete = "current-password",
                         Label = "password",
-                        Error = error
+                        Error = passwordError
                     }
                 ],
                 Buttons =
@@ -40,9 +44,9 @@ namespace Gabbro_Secret_Manager.Core.DynamicFormFactories
                     },
                     new DynamicFormButton
                     {
-                           Text = "create new account",
+                           Text = "use existing account",
                            Type = DynamicFormButtonType.Button,
-                           HxGet = "partials/register"
+                           HxGet = "partials/login"
                     }
                 ],
 

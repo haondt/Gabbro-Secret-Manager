@@ -7,7 +7,7 @@
                 <div>username</div>
             </div>
             <div class="flex flex-col gap-5">
-                <input id="password" autocomplete="current-password" type="password" name="password" class="fs-18" value="@(Model.Password ?? "")"/>
+                <input id="password" autocomplete="current-password" type="password" name="password" class="fs-18" />
                 <div>password</div>
             </div>
             @if (!string.IsNullOrEmpty(Model.Error))

@@ -1,0 +1,18 @@
+﻿@model Gabbro_Secret_Manager.Views.Shared.ConfirmExportDataPromptModel
+
+<div class="dynamic-form page flex flex-col align-center">
+    <div class="flex flex-col align-center" style="width: 80%;">
+        <div class="flex flex-col gap-15 w-full">
+            <div class="gap-10 w-full">
+                This export contains your secret data in an unencrypted format. You should not store or send the exported file over unsecure channels (such as email). Delete it immediately after you are done using it.
+            </div>
+
+            <div class="flex flex-row gap-10 j-end">
+                <a href="actions/export-data/secrets.json" download _="on click trigger closeModal">
+                    <button>ok</button>
+                </a>
+                <button class="negative" _="on click trigger closeModal">cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -22,6 +22,9 @@ namespace Gabbro_Secret_Manager.Domain
             services.AddSingleton<UserDataService>();
             services.AddScoped<ILifetimeHook, LoginHook>();
             services.AddScoped<ILifetimeHook, RegisterHook>();
+            services.AddScoped<GabbroControllerHelper>();
+            services.AddScoped<IControllerHelper>(sp => sp.GetRequiredService<GabbroControllerHelper>());
+            services.AddScoped<IGabbroControllerHelper>(sp => sp.GetRequiredService<GabbroControllerHelper>());
 
             services.AddSingleton<ApiKeyService>();
             services.Configure<JweSettings>(configuration.GetSection(nameof(JweSettings)));
@@ -33,33 +36,49 @@ namespace Gabbro_Secret_Manager.Domain
 
         public static IServiceCollection RegisterPages(this IServiceCollection services)
         {
-            services.AddScoped<IPageEntryFactory, HomePageEntryFactory>();
-            services.AddScoped<IPageEntryFactory, PageEntryFactory>(_ => new PageEntryFactory
-            {
-                Page = "passwordReentryForm",
-                SetUrl = "",
-                ViewPath = "PasswordReentryForm",
-                ModelFactory = (_, _) => new PasswordReentryFormModel(),
-                RequiresAuthentication = false
-            });
-            services.AddScoped<IPageEntryFactory, PageEntryFactory>(_ => new PageEntryFactory
-            {
-                Page = "passwordReentryModal",
-                SetUrl = "",
-                ViewPath = "PasswordReentryModal",
-                ModelFactory = (_, _) => new PasswordReentryModalModel(),
-                RequiresAuthentication = false
-            });
-            services.AddScoped<IPageEntryFactory, UpsertSecretFormFactory>();
+            services.AddScoped<GabbroPageRegistry>();
+            services.AddScoped<IPageRegistry>(sp => sp.GetRequiredService<GabbroPageRegistry>());
+            services.AddScoped<IGabbroPageRegistry>(sp => sp.GetRequiredService<GabbroPageRegistry>());
+
+            services.AddScoped<IGabbroPageEntryFactory, HomePageEntryFactory>();
+            services.AddScoped<IGabbroPageEntryFactory, UpsertSecretFormFactory>();
             services.RegisterPage("confirmDeleteSecretListEntry",
                 "ConfirmDeleteSecretListEntry",
                 data => new ConfirmDeleteSecretListEntryModel(data.Query.GetValue<string>(SecretListEntryModel.SecretNameKey)),
-                false, false);
-            services.AddScoped<IPageEntryFactory, SecretListEntryFactory>();
-            services.AddScoped<IPageEntryFactory, SecretListFactory>();
+                false);
+            services.AddScoped<IGabbroPageEntryFactory, SecretListEntryFactory>();
+            services.AddScoped<IGabbroPageEntryFactory, SecretListFactory>();
             services.AddScoped<IPageEntryFactory, SettingsPageFactory>();
             services.RegisterPage("upsertSecretFormTag", "UpsertSecretFormTag", data => new UpsertSecretFormTagModel { Value = data.Query.GetValue<string>("value") });
+            services.RegisterPage("confirmExportDataPrompt", "ConfirmExportDataPrompt", _ => new ConfirmExportDataPromptModel(), true, true);
             return services;
         }
+        public static IServiceCollection RegisterPage(this IServiceCollection services,
+            string page,
+            string viewPath,
+            Func<IPageRegistry, IRequestData, IPageModel> modelFactory,
+            bool requiresAuthentication = true,
+            bool requiresEncriptionKey = false,
+            Func<HxHeaderBuilder, HxHeaderBuilder>? headerOptions = null)
+        {
+            services.AddScoped<IPageEntryFactory, PageEntryFactory>(_ => new GabbroPageEntryFactory
+            {
+                Page = page,
+                ViewPath = viewPath,
+                ModelFactory = modelFactory,
+                RequiresAuthentication = requiresAuthentication,
+                RequiresEncryptionKey = requiresEncriptionKey,
+                ConfigureResponse = headerOptions
+            });
+            return services;
+        }
+
+        public static IServiceCollection RegisterPage(this IServiceCollection services,
+            string page,
+            string viewPath,
+            Func<IRequestData, IPageModel> modelFactory,
+            bool requiresAuthentication = true,
+            bool requiresEncriptionKey = false,
+            Func<HxHeaderBuilder, HxHeaderBuilder>? headerOptions = null) => RegisterPage(services, page, viewPath, (_, data) => modelFactory(data), requiresAuthentication, requiresEncriptionKey, headerOptions);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Gabbro_Secret_Manager.Core;
+using Gabbro_Secret_Manager.Core.DynamicForms;
 using Gabbro_Secret_Manager.Core.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -6,9 +7,11 @@ using Microsoft.Extensions.Options;
 namespace Gabbro_Secret_Manager.Controllers
 {
     [Route("account")]
-    public class AccountController(UserService userService, PageRegistry pageRegistry, IOptions<IndexSettings> indexOptions, ISessionService sessionService, LifetimeHookService lifetimeHookService) : BaseController(pageRegistry, indexOptions, sessionService)
+    public class AccountController(
+        IControllerHelper helper,
+        UserService userService, IPageRegistry pageRegistry, IOptions<IndexSettings> indexOptions, ISessionService sessionService, LifetimeHookService lifetimeHookService) : BaseController
     {
-        private readonly PageRegistry _pageRegistry = pageRegistry;
+        private readonly IPageRegistry _pageRegistry = pageRegistry;
         private readonly IndexSettings _indexSettings = indexOptions.Value;
         private readonly ISessionService _sessionService = sessionService;
 
@@ -19,17 +22,12 @@ namespace Gabbro_Secret_Manager.Controllers
             password ??= "";
             var (result, sessionToken, sessionExpiry ,userKey) = await userService.TryAuthenticateUserAndGenerateSessionToken(username, password);
             if (!result)
-                return await GetView("login", () => new LoginModel
-                {
-                    Username = username,
-                    Password = password,
-                    Error = "Incorrect username or password",
-                });
+                return await helper.GetView(this, "login", new LoginDynamicFormFactory(username, "incorrect username or password"));
 
             _sessionService.Reset(sessionToken);
             await lifetimeHookService.OnLoginAsync(username, password, userKey, sessionToken);
             Response.Cookies.AddAuthentication(sessionToken, sessionExpiry);
-            return await GetView(_indexSettings.HomePage);
+            return await helper.GetView(this, _indexSettings.HomePage);
         }
 
         [HttpGet("logout")]
@@ -42,7 +40,7 @@ namespace Gabbro_Secret_Manager.Controllers
                 Response.Cookies.ExpireAuthentication();
             }
 
-            return await GetView(_indexSettings.AuthenticationPage);
+            return await helper.GetView(this, _indexSettings.AuthenticationPage);
         }
 
         [HttpPost("register")]
@@ -52,16 +50,15 @@ namespace Gabbro_Secret_Manager.Controllers
             password ??= "";
             var (result, usernameReason, passwordReason, user, userKey) = await userService.TryRegisterUser(username, password);
             if (!result)
-                return await GetView("register", () => new RegisterModel
+                return await helper.GetView(this, "register", () => new RegisterModel
                 {
                     Username = username,
-                    Password = password,
                     UsernameError = usernameReason,
                     PasswordError = passwordReason
                 });
 
             await lifetimeHookService.OnRegisterAsync(user!, userKey);
-            return await this.GetPageView(_indexSettings.AuthenticationPage, _pageRegistry);
+            return await helper.GetView(this, _indexSettings.AuthenticationPage);
         }
     }
 }

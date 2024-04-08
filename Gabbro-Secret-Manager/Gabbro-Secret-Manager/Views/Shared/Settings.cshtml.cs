@@ -6,6 +6,8 @@ namespace Gabbro_Secret_Manager.Views.Shared
     {
         public List<ViewApiKey> ApiKeys { get; set; } = [];
         public bool ShowNewKeyWarning { get; set; } = false;
+        public string? NameError { get; set; }
+        public string Name { get; set; } = "";
     }
 
     public class ViewApiKey

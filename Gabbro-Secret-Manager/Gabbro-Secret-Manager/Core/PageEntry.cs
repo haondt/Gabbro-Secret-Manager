@@ -1,10 +1,44 @@
-﻿namespace Gabbro_Secret_Manager.Core
+﻿
+using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+
+namespace Gabbro_Secret_Manager.Core
 {
     public class PageEntry
     {
-        public string? SetUrl { get; set; }
-        public required string Page { get; set; }
-        public required string ViewPath { get; set; }
-        public required object Model { get; set; }
+        public required string Page { private get; init; }
+        public required string ViewPath { private get; init; }
+        public required object Model { private get; init; }
+        public Action<IHeaderDictionary>? ConfigureResponse { private get; init; }
+
+        public ViewResult CreateView(Controller controller)
+        {
+            ConfigureResponse?.Invoke(controller.Response.Headers);
+            return controller.View(ViewPath, Model);
+        }
+
+        public ViewResult CreateView()
+        {
+            var vdd = new ViewDataDictionary(
+                new EmptyModelMetadataProvider(),
+                new ModelStateDictionary())
+            {
+                Model = Model
+            };
+
+            return new ViewResult
+            {
+                ViewName = ViewPath,
+                ViewData = vdd
+            };
+        }
+
+        public Task<IHtmlContent> PartialAsync(IHtmlHelper html)
+        {
+            return html.PartialAsync(ViewPath, Model);
+        }
     }
 }

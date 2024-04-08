@@ -14,7 +14,7 @@
                 }
             </div>
             <div class="flex flex-col gap-5">
-                <input id="password" type="password" autocomplete="new-password" name="password" class="fs-18" value="@(Model.Password ?? "")"/>
+                <input id="password" type="password" autocomplete="new-password" name="password" class="fs-18" />
                 @if (!string.IsNullOrEmpty(Model.PasswordError))
                 {
                     <div class="form-error">@Model.PasswordError</div>

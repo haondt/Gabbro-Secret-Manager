@@ -4,46 +4,44 @@ using Gabbro_Secret_Manager.Views.Shared;
 
 namespace Gabbro_Secret_Manager.Domain.Services
 {
-    public class HomePageEntryFactory(ISessionService sessionService, EncryptionKeyService encryptionKeyService, SecretService secretService) : IPageEntryFactory
+    public class HomePageEntryFactory(ISessionService sessionService, EncryptionKeyService encryptionKeyService, SecretService secretService) : IGabbroPageEntryFactory
     {
         public bool RequiresAuthentication => true;
         public string Page => "home";
         public string ViewPath => "Home";
 
-        public async Task<PageEntry> Create(PageRegistry pageRegistry, IRequestData data)
+        public bool RequiresEncryptionKey => true;
+
+        public async Task<PageEntry> Create(IPageRegistry pageRegistry, IRequestData data, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)
         {
 
-            if (encryptionKeyService.TryGet(sessionService.SessionToken!, out var encryptionKey))
+            var encryptionKey = encryptionKeyService.Get(sessionService.SessionToken!);
+            var secrets = await secretService.GetSecrets(encryptionKey!, await sessionService.GetUserKeyAsync());
+            var model = new HomeModel
             {
-                var secrets = await secretService.GetSecrets(encryptionKey!, await sessionService.GetUserKeyAsync());
-                var model = new HomeModel
+                SearchString = "",
+                Secrets = new SecretListModel
                 {
-                    SearchString = "",
-                    Secrets = new SecretListModel
+                    Values = secrets
+                    .Select(s => new ViewSecret
                     {
-                        Values = secrets
-                        .Select(s => new ViewSecret
-                        {
-                            Name = s.Key,
-                            Value = s.Value,
-                            Tags = s.Tags
-                        })
-                        .ToList()
-                    }
-                };
-                return await Create(model);
-            }
-
-            return await pageRegistry.GetPageFactory("passwordReentryForm").Create(data);
+                        Name = s.Key,
+                        Value = s.Value,
+                        Tags = s.Tags
+                    })
+                    .ToList()
+                }
+            };
+            return await Create(model, responseOptions);
         }
 
-        public Task<PageEntry> Create(IPageModel model)
+        public Task<PageEntry> Create(IPageModel model, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)
         {
             return Task.FromResult(new PageEntry
             {
                 Page = Page,
                 ViewPath = ViewPath,
-                SetUrl = "home",
+                ConfigureResponse = PageEntryFactory.CombineResponseOptions(o => o.ConfigureForPage(Page), responseOptions),
                 Model = model
             });
         }

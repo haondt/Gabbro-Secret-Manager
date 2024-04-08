@@ -1,4 +1,6 @@
-﻿using Gabbro_Secret_Manager.Core.Persistence;
+﻿using Gabbro_Secret_Manager.Core.DynamicForm;
+using Gabbro_Secret_Manager.Core.DynamicForms;
+using Gabbro_Secret_Manager.Core.Persistence;
 using Gabbro_Secret_Manager.Core.Views;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Caching.Memory;
@@ -16,7 +18,8 @@ namespace Gabbro_Secret_Manager.Core
             services.AddSingleton<StylesProvider>();
             services.Configure<IndexSettings>(configuration.GetSection(nameof(IndexSettings)));
 
-            services.AddScoped<PageRegistry>();
+            services.AddScoped<IPageRegistry, PageRegistry>();
+
             var indexSettings = configuration.GetSection(nameof(IndexSettings)).Get<IndexSettings>();
             services.RegisterPage("navigationBar", "~/Core/Views/NavigationBar.cshtml", data =>
             {
@@ -26,16 +29,19 @@ namespace Gabbro_Secret_Manager.Core
                     Pages = indexSettings!.NavigationBarPages.Select(p => (p, p.Equals(castedValue, StringComparison.OrdinalIgnoreCase))).ToList(),
                     Actions = []
                 };
-            }, false, false);
-            services.RegisterPage("loader", "~/Core/Views/Loader.cshtml", () =>
-            {
-                throw new InvalidOperationException();
-            }, false, false);
-            services.RegisterPage("login", "~/Core/Views/Login.cshtml", () => new LoginModel(), true, false);
-            services.RegisterPage("register", "~/Core/Views/Register.cshtml", () => new RegisterModel(), true, false);
-            services.RegisterPage("index", "~/Core/Views/Index.cshtml", () => throw new InvalidOperationException(), false, false);
-            services.RegisterPage("toast", "~/Core/Views/Toast.cshtml", () => throw new InvalidOperationException(), false, false);
-            services.RegisterPage("modal", "~/Core/Views/Modal.cshtml", () => throw new InvalidOperationException(), false, false);
+            }, false);
+            services.RegisterPage("loader", "~/Core/Views/Loader.cshtml", () => throw new InvalidOperationException(), false);
+            services.RegisterPage("dynamicForm", "~/Core/Views/DynamicForm.cshtml", () => throw new InvalidOperationException(), false);
+            services.RegisterPage("dynamicFormWithAuthentication", "~/Core/Views/DynamicForm.cshtml", () => throw new InvalidOperationException(), true);
+            //services.RegisterPage("login", "~/Core/Views/Login.cshtml", () => new LoginModel(), false, r => r.ConfigureForPage("login"));
+            services.RegisterPage("login", "~/Core/Views/DynamicForm.cshtml", new LoginDynamicFormFactory("").Create, false, r => r.ConfigureForPage("login"));
+            services.RegisterPage("register", "~/Core/Views/Register.cshtml", () => new RegisterModel(), false, r => r.ConfigureForPage("register"));
+            services.RegisterPage("index", "~/Core/Views/Index.cshtml", () => throw new InvalidOperationException(), false);
+            services.RegisterPage("toast", "~/Core/Views/Toast.cshtml", () => throw new InvalidOperationException(), false,
+                r => r.ReSwap("afterbegin").ReTarget("#toast-container"));
+            services.RegisterPage("modal", "~/Core/Views/Modal.cshtml", () => throw new InvalidOperationException(), false, r =>
+                r.ReSwap("innerHTML").ReTarget("#modal-container"));
+                
 
             services.AddSingleton<FileExtensionContentTypeProvider>();
             services.Configure<AuthenticationSettings>(configuration.GetSection(nameof(AuthenticationSettings)));
@@ -53,6 +59,8 @@ namespace Gabbro_Secret_Manager.Core
             services.AddScoped<ToastErrorFilter>();
             services.AddScoped<ValidationFilter>();
 
+            services.AddScoped<IControllerHelper, ControllerHelper>();
+
             return services;
         }
 
@@ -60,30 +68,30 @@ namespace Gabbro_Secret_Manager.Core
             string page,
             string viewPath,
             Func<IPageModel> modelFactory,
-            bool setUrl = false,
-            bool requiresAuthentication = true) => RegisterPage(services, page, viewPath, (_, _) => modelFactory(), setUrl, requiresAuthentication);
+            bool requiresAuthentication = true,
+            Func<HxHeaderBuilder, HxHeaderBuilder>? headerOptions = null) => RegisterPage(services, page, viewPath, (_, _) => modelFactory(), requiresAuthentication, headerOptions);
 
         public static IServiceCollection RegisterPage(this IServiceCollection services,
             string page,
             string viewPath,
             Func<IRequestData, IPageModel> modelFactory,
-            bool setUrl = false,
-            bool requiresAuthentication = true) => RegisterPage(services, page, viewPath, (_, data) => modelFactory(data), setUrl, requiresAuthentication);
+            bool requiresAuthentication = true,
+            Func<HxHeaderBuilder, HxHeaderBuilder>? headerOptions = null) => RegisterPage(services, page, viewPath, (_, data) => modelFactory(data), requiresAuthentication, headerOptions);
 
         public static IServiceCollection RegisterPage(this IServiceCollection services,
             string page,
             string viewPath,
-            Func<PageRegistry, IRequestData, IPageModel> modelFactory,
-            bool setUrl = false,
-            bool requiresAuthentication = true)
+            Func<IPageRegistry, IRequestData, IPageModel> modelFactory,
+            bool requiresAuthentication = true,
+            Func<HxHeaderBuilder, HxHeaderBuilder>? headerOptions = null)
         {
             services.AddScoped<IPageEntryFactory, PageEntryFactory>(_ => new PageEntryFactory
             {
                 Page = page,
-                SetUrl = setUrl ? page : null,
                 ViewPath = viewPath,
                 ModelFactory = modelFactory,
-                RequiresAuthentication = requiresAuthentication
+                RequiresAuthentication = requiresAuthentication,
+                ConfigureResponse = headerOptions
             });
             return services;
         }

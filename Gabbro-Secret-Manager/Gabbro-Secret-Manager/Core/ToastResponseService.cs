@@ -5,13 +5,11 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace Gabbro_Secret_Manager.Core
 {
-    public class ToastResponseService(PageRegistry pageRegistry)
+    public class ToastResponseService(IPageRegistry pageRegistry)
     {
         public async Task Overwrite(List<(ToastSeverity Severity, string Message)> toasts, HttpContext httpContext, Action<IActionResult> setActionResult)
         {
             httpContext.Response.Headers.Clear();
-            httpContext.Response.Headers.Append("HX-Reswap", "afterbegin");
-            httpContext.Response.Headers.Append("HX-Retarget", "#toast-container");
             httpContext.Response.StatusCode = 200;
 
             var pageEntryFactory = pageRegistry.GetPageFactory("Toast");
@@ -20,13 +18,7 @@ namespace Gabbro_Secret_Manager.Core
                 Toasts = toasts
             });
 
-            var result = new ViewResult
-            {
-                ViewName = pageEntry.ViewPath,
-                ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) { Model = pageEntry.Model }
-            };
-            result.ViewData.Model = pageEntry.Model;
-
+            var result = pageEntry.CreateView();
             setActionResult(result);
         }
 

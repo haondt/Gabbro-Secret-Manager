@@ -9,7 +9,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
         public string Page => "settings";
         public string ViewPath => "Settings";
 
-        public async Task<PageEntry> Create(PageRegistry pageRegistry, IRequestData data)
+        public async Task<PageEntry> Create(IPageRegistry pageRegistry, IRequestData data, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)
         {
             var userKey =  await sessionService.GetUserKeyAsync();
             var apiKeys = await apiKeyService.GetApiKeys(userKey);
@@ -22,16 +22,16 @@ namespace Gabbro_Secret_Manager.Domain.Services
                     Name = kvp.Value.Name,
                 }).ToList()
             };
-            return await Create(model);
+            return await Create(model, responseOptions);
         }
 
-        public Task<PageEntry> Create(IPageModel model)
+        public Task<PageEntry> Create(IPageModel model, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)
         {
             return Task.FromResult(new PageEntry
             {
                 Page = Page,
                 ViewPath = ViewPath,
-                SetUrl = "settings",
+                ConfigureResponse = PageEntryFactory.CombineResponseOptions(o => o.ConfigureForPage(Page), responseOptions),
                 Model = model
             });
         }

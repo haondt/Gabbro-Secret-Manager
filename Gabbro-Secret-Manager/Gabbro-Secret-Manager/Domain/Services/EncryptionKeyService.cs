@@ -35,6 +35,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
         public byte[] CreateApiEncryptionKey(string userKey, string password, EncryptionKeySettings encryptionKeySettings) => GenerateEncryptionKey(userKey, password, encryptionKeySettings);
 
         public byte[] Get(string sessionToken) => _keys[sessionToken];
+        public bool Contains(string sessionToken) => _keys.ContainsKey(sessionToken);
 
         public byte[] GetOrCreateEncryptionKey(string sessionToken, string userKey, string password, EncryptionKeySettings encryptionKeySettings)
         {

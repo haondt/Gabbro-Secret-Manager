@@ -4,9 +4,12 @@
 <div id="modal"
 	_="on closeModal add .closing
 			then wait for animationend
-			then trigger modalFinished(inner: the event's detail @if(!string.IsNullOrEmpty(Model.Source)){ <text>, source: '@Model.Source'</text> }) 
 			then remove me">
-	<div class="modal-underlay" _="on click trigger closeModal"></div>
+	<div class="modal-underlay" @if (Model.AllowClickOut)
+	{
+		<text>_="on click trigger closeModal"</text>
+	}
+	></div>
 	<div class="modal-content panel">
         @await Html.PartialAsync(Model.Content)
 	</div>

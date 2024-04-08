@@ -7,15 +7,12 @@ namespace Gabbro_Secret_Manager.Controllers
 {
     [Route("assets")]
     public class AssetsController(
-        PageRegistry pageRegistry,
-        IOptions<IndexSettings> options,
-        ISessionService sessionService,
         AssetProvider assetProvider,
         StylesProvider stylesProvider,
-        FileExtensionContentTypeProvider contentTypeProvider) : BaseController(pageRegistry, options, sessionService)
+        FileExtensionContentTypeProvider contentTypeProvider) : BaseController
     {
 
-        private Dictionary<string, string> _customContentTypes = new Dictionary<string, string>
+        private Dictionary<string, string> _customContentTypes = new()
         {
             { "._hs", "text/hyperscript" }
         };

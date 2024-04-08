@@ -7,42 +7,40 @@ namespace Gabbro_Secret_Manager.Domain.Services
     public class SecretListEntryFactory(
         ISessionService sessionService,
         EncryptionKeyService encryptionKeyService,
-        SecretService secretService) : IPageEntryFactory
+        SecretService secretService) : IGabbroPageEntryFactory
     {
         public bool RequiresAuthentication => true;
+        public bool RequiresEncryptionKey => true;
         public string Page => "secretListEntry";
         public string ViewPath => "SecretListEntry";
 
-        public async Task<PageEntry> Create(PageRegistry pageRegistry, IRequestData data)
+        public async Task<PageEntry> Create(IPageRegistry pageRegistry, IRequestData data, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)
         {
-            var secretName = data.Query.GetValue<string>(SecretListEntryModel.SecretNameKey); 
+            var secretName = data.Query.GetValue<string>(SecretListEntryModel.SecretNameKey);
 
-            
-            if (encryptionKeyService.TryGet(sessionService.SessionToken!, out var encryptionKey))
+            var encryptionKey = encryptionKeyService.Get(sessionService.SessionToken!);
+
+            var (secret, tags) = await secretService.GetSecret(encryptionKey!, await sessionService.GetUserKeyAsync(), secretName);
+            var model = new SecretListEntryModel
             {
-                var (secret, tags) = await secretService.GetSecret(encryptionKey!, await sessionService.GetUserKeyAsync(), secretName);
-                var model = new SecretListEntryModel
+                Secret = new ViewSecret
                 {
-                    Secret = new ViewSecret
-                    {
-                        Name = secretName,
-                        Value = secret,
-                        Tags = tags,
-                    }
-                };
-                return await Create(model);
-            }
-
-            return await pageRegistry.GetPageFactory("passwordReentryForm").Create(data);
+                    Name = secretName,
+                    Value = secret,
+                    Tags = tags,
+                }
+            };
+            return await Create(model, responseOptions);
         }
 
-        public Task<PageEntry> Create(IPageModel model)
+        public Task<PageEntry> Create(IPageModel model, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)
         {
             return Task.FromResult(new PageEntry
             {
                 Page = Page,
                 ViewPath = ViewPath,
-                Model = model
+                Model = model,
+                ConfigureResponse = PageEntryFactory.CombineResponseOptions(responseOptions)
             });
         }
     }

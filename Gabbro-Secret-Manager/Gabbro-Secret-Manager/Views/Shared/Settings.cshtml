@@ -4,18 +4,13 @@
         <div id="settings">
             <div class="flex flex-row align-center gap-10">
                 <button hx-get="account/logout" hx-target="#settings" hx-swap="outerHTML">log out</button>
-                <a href="api/export-data/secrets.json" download onclick="return confirm('This export contains your secret data in and unencrypted format. You should not store or send the exported file over unsecure channels (such as email). Delete it immediately after you are done using it.')">
-                    <button>export data</button>
-                </a>
+                <button type="button" hx-get="actions/export-data">export data</button>
             </div>
-            <form hx-post="actions/create-api-key" hx-prompt="please enter your password to confirm creation of a new api key" hx-target="#settings" hx-swap="outerHTML">
-                <input name="name" placeholder="name" />
+            <form hx-post="actions/create-api-key">
+                <input name="name" placeholder="name" value="@Model.Name"/>
+                <div class="form-error for-name">@Model.NameError</div>
+                <button type="submit">create new key</button>
             </form>
-                <button type="button" hx-get="components/modal" hx-vals='{"content": "passwordReentryModal", "source": "settings"}' hx-trigger="startcreatekey"
-                    _="on modalFinished from body
-                            if the event's detail.source is 'settings'
-                                log the event
-                    ">create new key</button>
             <div>
                 @foreach(var apiKey in Model.ApiKeys)
                 {

@@ -1,0 +1,62 @@
+﻿@using Gabbro_Secret_Manager.Core.DynamicForm
+@model Gabbro_Secret_Manager.Core.Views.DynamicFormModel
+
+<div class="dynamic-form page flex flex-col align-center">
+    <div class="flex flex-col align-center" style="@Model.Style">
+        @if(!string.IsNullOrEmpty(Model.Title))
+        {
+            <h1>@Model.Title</h1>
+        }
+        <div style="height:30px;"></div>
+        <form 
+            class="flex flex-col gap-15 w-full"
+            @if (!string.IsNullOrEmpty(Model.HxPost)){ <text>hx-post="@Model.HxPost"</text> }
+            @if (!string.IsNullOrEmpty(Model.HxGet)){ <text>hx-get="@Model.HxGet"</text> }
+            @if (!string.IsNullOrEmpty(Model.HxVals)){ <text>hx-vals='@Model.HxVals'</text> }
+            @if (!string.IsNullOrEmpty(Model.HxTarget)){ <text>hx-target="@Model.HxTarget"</text> }
+            @if (!string.IsNullOrEmpty(Model.HxSwap)){ <text>hx-swap="@Model.HxSwap"</text> }
+        >
+            <div class="flex flex-col gap-10 w-full">
+                @foreach(var item in Model.Items)
+                {
+                    @switch(item)
+                    {
+                        case DynamicFormText formText:
+                            <div>@formText.Value</div>
+                            break;
+
+                        case DynamicFormInput formInput:
+                            <div class="flex flex-col gap-5">
+                                <input type="@formInput.Type.ToString()" name="@formInput.Name" 
+                                    class="fs-18 show-hover"
+                                    @if (!string.IsNullOrEmpty(formInput.PlaceHolder)){ <text>placeholder="@formInput.PlaceHolder"</text> }
+                                    @if (!string.IsNullOrEmpty(formInput.Autocomplete)){ <text>autocomplete="@formInput.Autocomplete"</text> }
+                                    @if (!string.IsNullOrEmpty(formInput.Value)){ <text>value="@formInput.Value"</text> }
+                                />
+                                @if (!string.IsNullOrEmpty(formInput.Error))
+                                {
+                                    <div class="form-error for-@formInput.Name">@formInput.Error</div>
+                                }
+                                @if (!string.IsNullOrEmpty(formInput.Label))
+                                {
+                                    <div>@formInput.Label</div>
+                                }
+                            </div>
+                            break;
+                    }
+
+                }
+            </div>
+
+            <div class="flex flex-row gap-10 j-end">
+                @foreach (var button in Model.Buttons)
+                {
+                    <button type="@button.Type.ToString()"
+                        @if (!string.IsNullOrEmpty(button.HxGet)){ <text>hx-get="@button.HxGet"</text> }
+                        @if (!string.IsNullOrEmpty(button.HyperTrigger)){ <text>_="on click trigger @button.HyperTrigger"</text> }
+                    >@button.GetText()</button>
+                }
+            </div>
+        </form>
+    </div>
+</div>

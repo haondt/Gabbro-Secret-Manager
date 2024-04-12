@@ -103,6 +103,7 @@ span.tooltip.show {
 
 #tagselectpanel {
     position: absolute;
+    right: 0;
     width: 248px;
     transform: translateY(10px);
 }
@@ -361,3 +362,44 @@ td {
 	animation-duration:150ms;
 	animation-timing-function: ease;
 }
+
+.bg-bb {
+    background-color: var(--color-bright-bg);
+}
+
+.bg-df {
+    background-color: var(--color-dark-bg);
+}
+
+.fg-bb {
+    color: var(--color-bright-bg);
+}
+
+.fg-db {
+    color: var(--color-dark-bg);
+}
+
+.bg-bf {
+    background-color: var(--color-bright-fg);
+}
+
+.bg-df {
+    background-color: var(--color-dark-fg);
+}
+
+.fg-bf {
+    color: var(--color-bright-fg);
+}
+
+.fg-df {
+    color: var(--color-dark-fg);
+}
+
+.bg-a {
+    background-color: var(--color-accent);
+}
+
+.fg-a {
+    color: var(--color-accent);
+}
+

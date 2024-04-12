@@ -12,8 +12,8 @@ namespace Gabbro_Secret_Manager.Core.DynamicFormFactories
         {
             return new DynamicFormModel
             {
-                Title = "log in",
-                HxPost = "account/login",
+                Title = "register",
+                HxPost = "account/register",
                 Style = "width: 80%; max-width: 250px",
                 Items =
                 [

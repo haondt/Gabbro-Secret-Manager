@@ -2,10 +2,10 @@
 {
     public interface IStorage
     {
-        public Task<T> Get<T>(string key);
-        public Task<(bool Success, T? Value)> TryGet<T>(string key);
-        public Task<bool> ContainsKey(string key);
-        public Task Set<T>(string key, T value);
-        public Task Delete(string key);
+        public Task<T> Get<T>(StorageKey key);
+        public Task<(bool Success, T? Value)> TryGet<T>(StorageKey key);
+        public Task<bool> ContainsKey(StorageKey key);
+        public Task Set<T>(StorageKey key, T value);
+        public Task Delete(StorageKey key);
     }
 }

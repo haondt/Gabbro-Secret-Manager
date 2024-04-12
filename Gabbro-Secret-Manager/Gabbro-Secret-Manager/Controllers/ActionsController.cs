@@ -25,8 +25,6 @@ namespace Gabbro_Secret_Manager.Controllers
         SecretService secretService) : BaseController
     {
         private readonly IndexSettings _indexSettings = indexOptions.Value;
-        private readonly IPageRegistry _pageRegistry = pageRegistry;
-        private readonly ISessionService _sessionService = sessionService;
 
 
         [HttpPost("refresh-encryption-key")]
@@ -35,15 +33,15 @@ namespace Gabbro_Secret_Manager.Controllers
             if (await helper.VerifySession(this) is (false, var invalidSessionResponse))
                 return invalidSessionResponse!;
 
-            var session = await userService.GetSession(_sessionService.SessionToken!);
-            var user = await userService.GetUser(session.UserKey);
+            var session = await userService.GetSession(sessionService.SessionToken!);
+            var user = await userService.GetUser(session.Owner);
             var (result, sessionToken, sessionExpiry, _) = await userService.TryAuthenticateUserAndGenerateSessionToken(user.Username, password ?? "");
             if (!result)
                 return await helper.GetRefreshEncryptionKeyView(this, "incorrect password");
 
-            _sessionService.Reset(sessionToken);
-            var userData = await userDataService.GetUserData(session.UserKey);
-            encryptionKeyService.UpsertEncryptionKey(sessionToken!, session.UserKey, password!, userData.EncryptionKeySettings);
+            sessionService.Reset(sessionToken);
+            var userData = await userDataService.GetUserData(session.Owner);
+            encryptionKeyService.UpsertEncryptionKey(sessionToken!, session.Owner, password!, userData.EncryptionKeySettings);
             Response.Cookies.AddAuthentication(sessionToken, sessionExpiry);
             return await helper.GetView(this, _indexSettings.HomePage);
         }
@@ -55,7 +53,7 @@ namespace Gabbro_Secret_Manager.Controllers
             if (await helper.VerifySession(this) is (false, var invalidSessionResponse))
                 return invalidSessionResponse!;
 
-            var userKey = await _sessionService.GetUserKeyAsync();
+            var userKey = await sessionService.GetUserKeyAsync();
             await secretService.DeleteSecret(userKey, name);
             return Ok();
         }
@@ -75,7 +73,7 @@ namespace Gabbro_Secret_Manager.Controllers
             if (!isSessionValid)
                 return invalidSessionResponse!;
 
-            var userKey = await _sessionService.GetUserKeyAsync();
+            var userKey = await sessionService.GetUserKeyAsync();
             async Task<Func<UpsertSecretFormModel>> upsertSecretFormModelGeneratorGenerator(string errorMessage)
             {
                 var tagSuggestions = await secretService.GetAvailableTags(encryptionKey!, userKey);
@@ -114,7 +112,7 @@ namespace Gabbro_Secret_Manager.Controllers
             if (!isSessionValid)
                 return invalidSessionResponse!;
 
-            var content = await _pageRegistry.GetPageFactory("confirmExportDataPrompt").Create(Request.AsRequestData());
+            var content = await pageRegistry.GetPageFactory("confirmExportDataPrompt").Create(Request.AsRequestData());
             return await helper.GetModal(this, content, true);
         }
 
@@ -152,7 +150,7 @@ namespace Gabbro_Secret_Manager.Controllers
 
             if (string.IsNullOrEmpty(name))
             {
-                return await helper.GetView(this, "settingsPage", () => new SettingsModel
+                return await helper.GetView(this, "settings", () => new SettingsModel
                 {
                     NameError = "Name cannot be empty"
                 }, 
@@ -171,37 +169,50 @@ namespace Gabbro_Secret_Manager.Controllers
             if (await helper.VerifySession(this) is (false, var invalidSessionResponse))
                 return invalidSessionResponse!;
 
-            var session = await userService.GetSession(_sessionService.SessionToken!);
-            if (!await userService.TryAuthenticateUser(session.UserKey, password))
+            var session = await userService.GetSession(sessionService.SessionToken!);
+            if (!await userService.TryAuthenticateUser(session.Owner, password))
                 return await helper.GetView(this, new ApiKeyPasswordConfirmationDynamicFormFactory(name, "incorrect password"));
-                //return await helper.GetModal(this, new ApiKeyPasswordConfirmationDynamicFormFactory(name, "incorrect password"), false);
-            var userData = await userDataService.GetUserData(session.UserKey);
+            var userData = await userDataService.GetUserData(session.Owner);
 
-            var encryptionKey = encryptionKeyService.CreateApiEncryptionKey(session.UserKey, password, userData.EncryptionKeySettings);
-            var (token, id, apiKey) = await apiKeyService.CreateApiTokenAsync(session.UserKey, name, encryptionKey);
+            var encryptionKey = encryptionKeyService.CreateApiEncryptionKey(session.Owner, password, userData.EncryptionKeySettings);
+            var (token, apiKey) = await apiKeyService.CreateApiTokenAsync(session.Owner, name, encryptionKey);
 
-            return await helper.GetView(this, "settingsPage", async () =>
+            return await helper.GetView(this, "settings", async () =>
             {
-                var apiKeys = await apiKeyService.GetApiKeys(session.UserKey);
+                var apiKeys = await apiKeyService.GetApiKeys(session.Owner);
                 var model = new SettingsModel
                 {
                     ShowNewKeyWarning = true,
-                    ApiKeys = apiKeys.Select(kvp =>
-                    {
-                        var apiKey = new ViewApiKey
+                    ApiKeys = apiKeys
+                        .OrderByDescending(kvp => kvp.Value.Created)
+                        .Select(kvp =>
                         {
-                            Id = kvp.Key,
-                            Name = kvp.Value.Name,
-                        };
-                        if (kvp.Key == id)
-                            apiKey.Value = token;
-
-                        return apiKey;
-                    }).ToList()
+                            var viewApiKey = new ViewApiKey
+                            {
+                                Id = kvp.Value.Id.ToString(),
+                                Name = kvp.Value.Name,
+                            };
+                            if (kvp.Value.Id == apiKey.Id)
+                                viewApiKey.Value = token;
+                            return viewApiKey;
+                        }).ToList()
                 };
 
                 return model;
             });
+        }
+
+        [HttpPost("delete-api-key")]
+        public async Task<IActionResult> DeleteApiKey([FromForm] Guid id)
+        {
+            if (await helper.VerifySession(this) is (false, var invalidSessionResponse))
+                return invalidSessionResponse!;
+
+            var session = await userService.GetSession(sessionService.SessionToken!);
+            if (await apiKeyService.VerifyOwner(session.Owner, id))
+                await apiKeyService.DeleteApiKey(id);
+
+            return Ok();
         }
     }
 }

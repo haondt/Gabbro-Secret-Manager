@@ -5,7 +5,7 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
 {
     public interface IGabbroStorage : IStorage
     {
-        public Task<List<Secret>> GetSecrets(string userKey);
-        public Task<Dictionary<string, ApiKey>> GetApiKeys(string userKey);
+        public Task<List<Secret>> GetSecrets(StorageKey userKey);
+        public Task<Dictionary<StorageKey, ApiKey>> GetApiKeys(StorageKey userKey);
     }
 }

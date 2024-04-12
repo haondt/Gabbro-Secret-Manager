@@ -33,7 +33,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
             var claimsList = claims.Select(claim => new Claim(claim.Key, claim.Value));
 
             var signingCredentials = new SigningCredentials(_signingKey, SecurityAlgorithms.HmacSha256);
-            var encryptingCredentials = new EncryptingCredentials(_encryptionKey, SecurityAlgorithms.Aes128KW, SecurityAlgorithms.Aes128CbcHmacSha256);
+            var encryptingCredentials = new EncryptingCredentials(_encryptionKey, SecurityAlgorithms.Aes256KW, SecurityAlgorithms.Aes256CbcHmacSha512);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Issuer = _settings.Issuer,

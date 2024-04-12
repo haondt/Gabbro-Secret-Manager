@@ -1,4 +1,6 @@
-﻿namespace Gabbro_Secret_Manager.Core
+﻿using Gabbro_Secret_Manager.Core.Persistence;
+
+namespace Gabbro_Secret_Manager.Core
 {
     public class LifetimeHookService(IEnumerable<ILifetimeHook> hooks)
     {
@@ -8,10 +10,10 @@
                 .Cast<T>()
                 .Select(func));
 
-        public Task OnLoginAsync(string username, string password, string userKey, string sessionToken) =>
+        public Task OnLoginAsync(string username, string password, StorageKey userKey, string sessionToken) =>
             OnEventAsync<ILoginLifetimeHook>(h => h.OnLoginAsync(username, password, userKey, sessionToken));
 
-        public Task OnRegisterAsync(User user, string userKey) =>
+        public Task OnRegisterAsync(User user, StorageKey userKey) =>
             OnEventAsync<IRegisterLifetimeHook>(h => h.OnRegisterAsync(user, userKey));
     }
 }

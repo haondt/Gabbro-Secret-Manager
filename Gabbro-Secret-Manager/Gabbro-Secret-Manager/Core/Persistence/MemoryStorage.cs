@@ -2,24 +2,24 @@
 {
     public class MemoryStorage : IStorage
     {
-        protected readonly Dictionary<string, object> _storage = [];
+        protected readonly Dictionary<StorageKey, object> _storage = [];
 
-        public Task<bool> ContainsKey(string key) => Task.FromResult(_storage.ContainsKey(key));
-        public Task Delete(string key)
+        public Task<bool> ContainsKey(StorageKey key) => Task.FromResult(_storage.ContainsKey(key));
+        public Task Delete(StorageKey key)
         {
             _storage.Remove(key);
             return Task.CompletedTask;
         }
 
-        public Task<T> Get<T>(string key) => Task.FromResult((T)_storage[key]);
+        public Task<T> Get<T>(StorageKey key) => Task.FromResult((T)_storage[key]);
 
-        public Task Set<T>(string key, T value)
+        public Task Set<T>(StorageKey key, T value)
         {
             _storage[key] = value ?? throw new ArgumentNullException(nameof(value));
             return Task.CompletedTask;
         }
 
-        public Task<(bool, T?)> TryGet<T>(string key)
+        public Task<(bool, T?)> TryGet<T>(StorageKey key)
         {
             if (_storage.TryGetValue(key, out var valueObj) && valueObj is T)
             {

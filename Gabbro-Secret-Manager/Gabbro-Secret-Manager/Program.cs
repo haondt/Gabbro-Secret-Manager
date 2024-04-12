@@ -1,6 +1,8 @@
 using Gabbro_Secret_Manager.Core;
 using Gabbro_Secret_Manager.Domain;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Logging;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +29,10 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+    IdentityModelEventSource.ShowPII = true;
+
 app.UseStaticFiles();
 app.UseCors(CORS_POLICY);
 app.UseAuthorization();

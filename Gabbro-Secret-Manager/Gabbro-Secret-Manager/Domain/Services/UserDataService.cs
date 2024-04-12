@@ -1,4 +1,5 @@
 ﻿using Gabbro_Secret_Manager.Core;
+using Gabbro_Secret_Manager.Core.Persistence;
 using Gabbro_Secret_Manager.Domain.Models;
 using Gabbro_Secret_Manager.Domain.Persistence;
 using Microsoft.Extensions.Options;
@@ -8,12 +9,12 @@ namespace Gabbro_Secret_Manager.Domain.Services
     public class UserDataService(IGabbroStorageService storageService, IOptions<EncryptionKeyServiceSettings> encryptionKeyOptions)
     {
         private const int _saltSize = 16; // 16 bytes for the salt
-        public async Task<UserData> InitializeUserData(string userKey)
+        public async Task<UserData> InitializeUserData(StorageKey userKey)
         {
-            var userDataKey = userKey.GetStorageKey<UserData>();
+            var userDataKey = userKey.Extend<UserData>();
             var userData = new UserData
             {
-                UserKey = userKey,
+                Owner = userKey,
                 EncryptionKeySettings = new EncryptionKeySettings
                 {
                     Iterations = encryptionKeyOptions.Value.DefaultEncryptionKeyIterations,
@@ -24,9 +25,9 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return userData;
         }
 
-        public Task<UserData> GetUserData(string userKey)
+        public Task<UserData> GetUserData(StorageKey userKey)
         {
-            return storageService.Get<UserData>(userKey.GetStorageKey<UserData>());
+            return storageService.Get<UserData>(userKey.Extend<UserData>());
         }
     }
 }

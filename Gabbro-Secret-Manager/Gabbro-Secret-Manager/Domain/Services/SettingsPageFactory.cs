@@ -16,9 +16,11 @@ namespace Gabbro_Secret_Manager.Domain.Services
 
             var model = new SettingsModel
             {
-                ApiKeys = apiKeys.Select(kvp => new ViewApiKey
+                ApiKeys = apiKeys
+                .OrderByDescending(kvp => kvp.Value.Created)
+                .Select(kvp => new ViewApiKey
                 {
-                    Id = kvp.Key,
+                    Id = kvp.Value.Id.ToString(),
                     Name = kvp.Value.Name,
                 }).ToList()
             };

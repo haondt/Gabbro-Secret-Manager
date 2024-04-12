@@ -5,7 +5,7 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
 {
     public class MemoryGabbroStorage : MemoryStorage, IGabbroStorage
     {
-        public Task<List<Secret>> GetSecrets(string userKey)
+        public Task<List<Secret>> GetSecrets(StorageKey userKey)
         {
             var secrets = _storage
                 .Select(kvp => kvp.Value as Secret)
@@ -15,7 +15,7 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
             return Task.FromResult(secrets);
         }
 
-        public Task<Dictionary<string, ApiKey>> GetApiKeys(string userKey)
+        public Task<Dictionary<StorageKey, ApiKey>> GetApiKeys(StorageKey userKey)
         {
             var apiKeys = _storage
                 .Where(kvp => kvp.Value != null && kvp.Value is ApiKey)

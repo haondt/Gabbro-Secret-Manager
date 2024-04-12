@@ -19,12 +19,18 @@
                 <button type="submit">create new key</button>
             </form>
 
+            @if (Model.ShowNewKeyWarning)
+            {
+                <div class="flex flex-col" style="height: 10px;"></div>
+                <div class="form-error">new key has been added below. be sure to copy it as this is the only time you will be able to see it.</div>
+            }
+
             <div class="flex flex-col" style="height: 25px;"></div>
 
             <div class="flex flex-col gap-15">
                 @foreach(var apiKey in Model.ApiKeys)
                 {
-                    <div style="height: 40px;">
+                    <div class="api-key-entry" style="height: 40px;">
                         <div class="api-key-item flex flex-row gap-15 padding-5 j-between">
                             <div class="secret-list-value flex-grow">@apiKey.Name</div>
                             @if (!string.IsNullOrEmpty(apiKey.Value))
@@ -51,6 +57,8 @@
                             <div class="padding-5">Are you sure you want to delete? This action cannot be undone.</div>
                             <button class="negative bg-bb" type="button" hx-vals='{"id": "@apiKey.Id"}'
                                 hx-post="actions/delete-api-key"
+                                hx-target="closest .api-key-entry"
+                                hx-swap="outerHTML"
                             >delete</button>
                             <button class="bg-bb" type="button"
                                 _="on click

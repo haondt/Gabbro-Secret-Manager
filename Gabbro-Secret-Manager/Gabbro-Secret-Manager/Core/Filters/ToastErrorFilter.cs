@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using System.Net;
 
-namespace Gabbro_Secret_Manager.Core
+namespace Gabbro_Secret_Manager.Core.Filters
 {
     public class ToastErrorFilter(ToastResponseService toaster) : ExceptionFilterAttribute
     {

@@ -28,9 +28,8 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return (decryptedValue, secret.Tags);
         }
 
-        public async Task<(bool Success, string Value, string comments, HashSet<string> Tags)> TryGetSecret(byte[] encryptionKey, StorageKey userKey, string key)
+        public async Task<(bool Success, string Value, string comments, HashSet<string> Tags)> TryGetSecret(byte[] encryptionKey, StorageKey secretKey)
         {
-            var secretKey = userKey.Extend<Secret>(key);
             var (hasSecret, secret) = await storage.TryGet<Secret>(secretKey);
             if (!hasSecret)
                 return (false, "", "", []);

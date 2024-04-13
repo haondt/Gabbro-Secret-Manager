@@ -1,5 +1,6 @@
 ﻿using Gabbro_Secret_Manager.Core;
 using Gabbro_Secret_Manager.Core.Persistence;
+using Gabbro_Secret_Manager.Domain.Filters;
 using Gabbro_Secret_Manager.Domain.Models;
 using Gabbro_Secret_Manager.Domain.Persistence;
 using Gabbro_Secret_Manager.Domain.Services;
@@ -26,10 +27,15 @@ namespace Gabbro_Secret_Manager.Domain
             services.AddScoped<IControllerHelper>(sp => sp.GetRequiredService<GabbroControllerHelper>());
             services.AddScoped<IGabbroControllerHelper>(sp => sp.GetRequiredService<GabbroControllerHelper>());
 
-            services.AddSingleton<ApiKeyService>();
             services.Configure<JweSettings>(configuration.GetSection(nameof(JweSettings)));
             JweSettings.Validate(services.AddOptions<JweSettings>()).ValidateOnStart();
             services.AddSingleton<JweService>();
+            services.AddSingleton<ApiKeyService>();
+            services.AddScoped<ApiSessionService>();
+
+            services.AddScoped<ApiAuthenticationFilter>();
+            services.AddScoped<ApiValidationFilter>();
+            services.AddScoped<ApiErrorFilter>();
 
             return services;
         }

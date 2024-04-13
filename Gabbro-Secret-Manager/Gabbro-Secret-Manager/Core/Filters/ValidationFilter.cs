@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Gabbro_Secret_Manager.Core
+namespace Gabbro_Secret_Manager.Core.Filters
 {
     public class ValidationFilter(ToastResponseService toaster) : ActionFilterAttribute
     {
@@ -8,7 +8,7 @@ namespace Gabbro_Secret_Manager.Core
         {
             if (!context.ModelState.IsValid)
             {
-                var errors = context.ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList(); 
+                var errors = context.ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList();
                 return toaster.Overwrite(
                     errors.Select(e => (ToastSeverity.Error, e)).ToList(),
                     context.HttpContext,

@@ -41,21 +41,21 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return apiKey!.Owner.Equals(userKey);
         }
 
-        public async Task<(bool IsValid, StorageKey userKey, string encryptionKey)> ValidateApiTokenAsync(string token)
+        public async Task<(bool IsValid, StorageKey userKey, byte[] encryptionKey)> ValidateApiTokenAsync(string token)
         {
             if (!await jweService.IsValid(token)) 
-                return (false, StorageKey.Empty, "");
+                return (false, StorageKey.Empty, []);
             var claims = await jweService.GetClaims(token);
             var id = Guid.Parse(claims["id"]);
             var apiKeyKey = ApiKey.GetStorageKey(id);
-            var encryptionKey = claims["encryptionKey"];
+            var encryptionKey = Convert.FromBase64String(claims["encryptionKey"]);
             var type = claims["type"];
 
             if (type != "apiToken")
-                return (false, StorageKey.Empty, "");
+                return (false, StorageKey.Empty, []);
 
             if (await storage.TryGet<ApiKey>(apiKeyKey) is not (true, var apiKey))
-                return (false, StorageKey.Empty, "");
+                return (false, StorageKey.Empty, []);
 
             return (true, apiKey!.Owner, encryptionKey);
         }

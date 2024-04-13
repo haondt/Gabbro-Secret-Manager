@@ -1,4 +1,5 @@
 ﻿using Gabbro_Secret_Manager.Core;
+using Gabbro_Secret_Manager.Domain.Models;
 using Gabbro_Secret_Manager.Views.Shared;
 
 namespace Gabbro_Secret_Manager.Domain.Services
@@ -19,15 +20,16 @@ namespace Gabbro_Secret_Manager.Domain.Services
             var encryptionKey = encryptionKeyService.Get(sessionService.SessionToken!);
             var userKey = await sessionService.GetUserKeyAsync();
             var availableTags = await secretService.GetAvailableTags(encryptionKey, userKey);
-            var secretKey = data.Query.GetValueOrDefault("key", "");
+            var secretName = data.Query.GetValueOrDefault("key", "");
             var currentKey = data.Query.GetValueOrDefault<string?>("currentKey", null);
-            var (existsSecret, secret, comments, secretTags) = await secretService.TryGetSecret(encryptionKey, userKey, secretKey);
+            var secretKey = Secret.GetStorageKey(userKey, secretName);
+            var (existsSecret, secret, comments, secretTags) = await secretService.TryGetSecret(encryptionKey, secretKey);
 
             var model = new UpsertSecretFormModel
             {
                 CurrentKey = currentKey,
                 TagSuggestions = availableTags,
-                Key = secretKey,
+                Key = secretName,
                 Value = existsSecret ? secret : "",
                 Comments = existsSecret ? comments : "",
                 Tags = existsSecret ? secretTags : []

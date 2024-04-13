@@ -1,5 +1,6 @@
 ﻿using Gabbro_Secret_Manager.Core.DynamicForm;
 using Gabbro_Secret_Manager.Core.DynamicFormFactories;
+using Gabbro_Secret_Manager.Core.Filters;
 using Gabbro_Secret_Manager.Core.Persistence;
 using Gabbro_Secret_Manager.Core.Views;
 using Microsoft.AspNetCore.StaticFiles;

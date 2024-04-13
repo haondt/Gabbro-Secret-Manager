@@ -1,5 +1,5 @@
-﻿using Gabbro_Secret_Manager.Core;
-using Gabbro_Secret_Manager.Core.DynamicForm;
+﻿using Gabbro_Secret_Manager.Core.DynamicForm;
+using Gabbro_Secret_Manager.Core.Filters;
 using Gabbro_Secret_Manager.Core.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;

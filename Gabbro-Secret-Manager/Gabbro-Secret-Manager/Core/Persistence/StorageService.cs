@@ -15,7 +15,7 @@ namespace Gabbro_Secret_Manager.Core.Persistence
             return inner.Delete(key);
         }
 
-        public async Task<T> Get<T>(StorageKey key)
+        public async Task<T> Get<T>(StorageKey<T> key)
         {
             if (_persistenceSettings.UseReadCaching)
             {
@@ -28,14 +28,14 @@ namespace Gabbro_Secret_Manager.Core.Persistence
             return await inner.Get<T>(key);
         }
 
-        public Task Set<T>(StorageKey key, T value)
+        public Task Set<T>(StorageKey<T> key, T value)
         {
             if (_persistenceSettings.UseReadCaching)
                 cache.Remove(key);
             return inner.Set(key, value);
         }
 
-        public async Task<(bool, T?)> TryGet<T>(StorageKey key)
+        public async Task<(bool, T?)> TryGet<T>(StorageKey<T> key)
         {
             if (_persistenceSettings.UseReadCaching)
                 if (cache.TryGetValue(key, out var value))

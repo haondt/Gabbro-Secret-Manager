@@ -16,7 +16,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
         private readonly Queue<string> _keyQueue = new();
         private readonly object _dictLock = new();
 
-        private byte[] GenerateEncryptionKey(StorageKey userKey, string password, EncryptionKeySettings encryptionKeySettings)
+        private byte[] GenerateEncryptionKey(StorageKey<User> userKey, string password, EncryptionKeySettings encryptionKeySettings)
         {
             var uHash = CryptoService.GenerateHash(userKey.ToString());
             var pHash = CryptoService.GenerateHash(password);
@@ -33,12 +33,12 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return _keys.TryGetValue(sessionToken, out key);
         }
 
-        public byte[] CreateApiEncryptionKey(StorageKey userKey, string password, EncryptionKeySettings encryptionKeySettings) => GenerateEncryptionKey(userKey, password, encryptionKeySettings);
+        public byte[] CreateApiEncryptionKey(StorageKey<User> userKey, string password, EncryptionKeySettings encryptionKeySettings) => GenerateEncryptionKey(userKey, password, encryptionKeySettings);
 
         public byte[] Get(string sessionToken) => _keys[sessionToken];
         public bool Contains(string sessionToken) => _keys.ContainsKey(sessionToken);
 
-        public byte[] GetOrCreateEncryptionKey(string sessionToken, StorageKey userKey, string password, EncryptionKeySettings encryptionKeySettings)
+        public byte[] GetOrCreateEncryptionKey(string sessionToken, StorageKey<User> userKey, string password, EncryptionKeySettings encryptionKeySettings)
         {
             if (TryGet(sessionToken, out var existingKey))
                 return existingKey!;
@@ -46,7 +46,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return UpsertEncryptionKey(sessionToken, userKey, password, encryptionKeySettings);
         }
 
-        public byte[] UpsertEncryptionKey(string sessionToken, StorageKey userKey, string password, EncryptionKeySettings encryptionKeySettings)
+        public byte[] UpsertEncryptionKey(string sessionToken, StorageKey<User> userKey, string password, EncryptionKeySettings encryptionKeySettings)
         {
             var newKey = GenerateEncryptionKey(userKey, password, encryptionKeySettings);
             Set(sessionToken, newKey);

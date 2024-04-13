@@ -4,6 +4,6 @@ namespace Gabbro_Secret_Manager.Core
 {
     public interface ILoginLifetimeHook : ILifetimeHook
     {
-        public Task OnLoginAsync(string username, string password, StorageKey userKey, string sessionToken);
+        public Task OnLoginAsync(string username, string password, StorageKey<User> userKey, string sessionToken);
     }
 }

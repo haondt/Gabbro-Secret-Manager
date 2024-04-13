@@ -4,7 +4,7 @@ namespace Gabbro_Secret_Manager.Core
 {
     public class User
     {
-        public static StorageKey GetStorageKey(string username) => username.ToLower().Trim().GetStorageKey<User>();
+        public static StorageKey<User> GetStorageKey(string username) => new(username.ToLower().Trim());
         public required string Username { get; set; } 
         public required string PasswordHash { get; set; } 
         public required string PasswordSalt { get; set; }

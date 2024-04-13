@@ -10,7 +10,7 @@ namespace Gabbro_Secret_Manager.Core
 
         private Lazy<Task<UserSession?>> _userSessionLazy;
         public async Task<bool> IsAuthenticatedAsync() => await _userSessionLazy.Value != null;
-        public async Task<StorageKey> GetUserKeyAsync() => (await _userSessionLazy.Value)?.Owner ?? throw new InvalidOperationException(nameof(GetUserKeyAsync));
+        public async Task<StorageKey<User>> GetUserKeyAsync() => (await _userSessionLazy.Value)?.Owner ?? throw new InvalidOperationException(nameof(GetUserKeyAsync));
 
         private Lazy<string?> _sessionTokenLazy;
         public string? SessionToken => _forcedSessionToken ?? _sessionTokenLazy.Value;

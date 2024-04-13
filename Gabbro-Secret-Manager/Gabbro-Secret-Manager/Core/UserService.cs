@@ -24,17 +24,17 @@ namespace Gabbro_Secret_Manager.Core
             return isValid;
         }
 
-        public async Task<(bool Success, string UsernameReason, string PasswordReason, User? user, StorageKey userKey)> TryRegisterUser(string username, string password)
+        public async Task<(bool Success, string UsernameReason, string PasswordReason, User? user, StorageKey<User> userKey)> TryRegisterUser(string username, string password)
         {
             if (!ValidateCredentials(username, password, out var usernameReason, out var passwordReason))
-                return (false, usernameReason, passwordReason, default, StorageKey.Empty);
+                return (false, usernameReason, passwordReason, default, StorageKey<User>.Empty);
 
 
-            var userKey = User.GetStorageKey(username);
+            var userKey  = User.GetStorageKey(username);
             if (await storage.ContainsKey(userKey))
             {
                 usernameReason = "Username not available";
-                return (false, usernameReason, "", default, StorageKey.Empty);
+                return (false, usernameReason, "", default, StorageKey<User>.Empty);
             }
 
             var (salt, hash) = crypto.HashPassword(password);
@@ -49,7 +49,7 @@ namespace Gabbro_Secret_Manager.Core
             return (true, "", "", user, userKey);
         }
 
-        public async Task<bool> TryAuthenticateUser(StorageKey userKey, string password)
+        public async Task<bool> TryAuthenticateUser(StorageKey<User> userKey, string password)
         {
             var (foundUser, user) = await storage.TryGet<User>(userKey);
             if (!foundUser)
@@ -62,15 +62,15 @@ namespace Gabbro_Secret_Manager.Core
             return true;
         }
 
-        public async Task<(bool Success, string sessionToken, DateTime expiry, StorageKey userKey)> TryAuthenticateUserAndGenerateSessionToken(string username, string password)
+        public async Task<(bool Success, string sessionToken, DateTime expiry, StorageKey<User> userKey)> TryAuthenticateUserAndGenerateSessionToken(string username, string password)
         {
-            var defaultResponseFactory = () => (false, "", default(DateTime), StorageKey.Empty);
+            var defaultResponseFactory = () => (false, "", default(DateTime), StorageKey<User>.Empty);
             if (!ValidateCredentials(username, password, out _, out _))
                 return defaultResponseFactory();
 
             var userKey = User.GetStorageKey(username);
 
-            var (foundUser, user) = await storage.TryGet<User>(userKey);
+            var (foundUser, user) = await storage.TryGet(userKey);
             if (!foundUser)
                 return defaultResponseFactory();
 
@@ -120,9 +120,9 @@ namespace Gabbro_Secret_Manager.Core
             return session;
         }
 
-        public async Task<User> GetUser(StorageKey userKey)
+        public async Task<User> GetUser(StorageKey<User> userKey)
         {
-            var (foundUser, user) = await storage.TryGet<User>(userKey);
+            var (foundUser, user) = await storage.TryGet(userKey);
             if (!foundUser)
                 throw new KeyNotFoundException(userKey.ToString());
             return user!;
@@ -131,7 +131,7 @@ namespace Gabbro_Secret_Manager.Core
         public async Task<(bool Success, UserSession? Session)> TryGetSession(string sessionToken)
         {
             var sessionKey = UserSession.GetStorageKey(sessionToken);
-            var (foundSession, session) = await storage.TryGet<UserSession>(sessionKey);
+            var (foundSession, session) = await storage.TryGet(sessionKey);
             if (!foundSession)
                 return (false, default);
 

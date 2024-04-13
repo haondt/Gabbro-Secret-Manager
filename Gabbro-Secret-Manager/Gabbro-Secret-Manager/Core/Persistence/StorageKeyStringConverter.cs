@@ -1,10 +1,11 @@
-﻿using System.ComponentModel;
+﻿using Newtonsoft.Json;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Gabbro_Secret_Manager.Core.Persistence
 {
-    public class StorageKeyConverter : TypeConverter
+    public class StorageKeyStringConverter : TypeConverter
     {
         public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
         {
@@ -15,7 +16,7 @@ namespace Gabbro_Secret_Manager.Core.Persistence
         {
             if (value is StorageKey storageKey)
             {
-                return storageKey.ToString();
+                return Serialize(storageKey);
             }
 
             throw new NotSupportedException($"Cannot convert {value?.GetType()} to {destinationType}");
@@ -29,8 +30,20 @@ namespace Gabbro_Secret_Manager.Core.Persistence
         public override object ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object? value)
         {
             if (value is string str && !string.IsNullOrEmpty(str))
-                return StorageKey.Parse(str);
+                return Deserialize(str);
             throw new NotSupportedException($"Cannot convert {value?.GetType()} to {typeof(StorageKey)}");
         }
+
+        private static string Serialize(StorageKey storageKey)
+        {
+            return JsonConvert.SerializeObject(StorageKeyRepresentation.FromStorageKey(storageKey));
+        }
+
+        private static StorageKey Deserialize(string str)
+        {
+            return JsonConvert.DeserializeObject<StorageKeyRepresentation>(str)?.AsStorageKey()
+                ?? throw new InvalidOperationException("Unable to deserialize storage key");
+        }
+
     }
 }

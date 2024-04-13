@@ -6,7 +6,7 @@ namespace Gabbro_Secret_Manager.Domain
 {
     public class RegisterHook(UserDataService userDataService) : IRegisterLifetimeHook
     {
-        public Task OnRegisterAsync(User user, StorageKey userKey)
+        public Task OnRegisterAsync(User user, StorageKey<User> userKey)
         {
             return userDataService.InitializeUserData(userKey);
         }

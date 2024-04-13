@@ -6,7 +6,7 @@ namespace Gabbro_Secret_Manager.Domain
 {
     public class LoginHook(UserDataService userDataService, EncryptionKeyService encryptionKeyService) : ILoginLifetimeHook
     {
-        public async Task OnLoginAsync(string username, string password, StorageKey userKey, string sessionToken)
+        public async Task OnLoginAsync(string username, string password, StorageKey<User> userKey, string sessionToken)
         {
             var userData = await userDataService.GetUserData(userKey);
             encryptionKeyService.GetOrCreateEncryptionKey(sessionToken, userKey, password, userData.EncryptionKeySettings);

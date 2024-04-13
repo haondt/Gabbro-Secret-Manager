@@ -4,8 +4,8 @@ namespace Gabbro_Secret_Manager.Core
 {
     public class UserSession
     {
-        public static StorageKey GetStorageKey(string sessionToken) => sessionToken.GetStorageKey<UserSession>();
+        public static StorageKey<UserSession> GetStorageKey(string sessionToken) => new(sessionToken);
         public required DateTime Expiry { get; set; }
-        public required StorageKey Owner { get; set; }
+        public required StorageKey<User> Owner { get; set; }
     }
 }

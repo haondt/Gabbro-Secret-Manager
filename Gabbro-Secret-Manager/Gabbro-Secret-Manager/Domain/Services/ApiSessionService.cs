@@ -1,4 +1,5 @@
-﻿using Gabbro_Secret_Manager.Core.Persistence;
+﻿using Gabbro_Secret_Manager.Core;
+using Gabbro_Secret_Manager.Core.Persistence;
 using Gabbro_Secret_Manager.Domain.Services;
 using System.Diagnostics.CodeAnalysis;
 
@@ -9,7 +10,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ApiKeyService _apiKeyService;
 
-        private readonly Lazy<Task<(bool IsValid, StorageKey UserKey, byte[] EncryptionKey)>> _apiKeyLazy;
+        private readonly Lazy<Task<(bool IsValid, StorageKey<User> userKey, byte[] EncryptionKey)>> _apiKeyLazy;
 
         public ApiSessionService(
             IHttpContextAccessor httpContextAccessor,
@@ -20,7 +21,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
 
             _apiKeyLazy = new(() =>
             {
-                var defaultValue = Task.FromResult<(bool, StorageKey, byte[])>((false, StorageKey.Empty, []));
+                var defaultValue = Task.FromResult<(bool, StorageKey<User>, byte[])>((false, StorageKey<User>.Empty, []));
 
                 if (_httpContextAccessor.HttpContext == null)
                     return defaultValue;
@@ -38,7 +39,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
         }
 
         public async Task<bool> IsAuthenticatedAsync() => (await _apiKeyLazy.Value).IsValid;
-        public async Task<(StorageKey UserKey, byte[] EncryptionKey)> GetUserDataAsync()
+        public async Task<(StorageKey<User> userKey, byte[] EncryptionKey)> GetUserDataAsync()
         {
             var (isValid, userKey, encryptionKey) = await _apiKeyLazy.Value;
             if (!isValid)

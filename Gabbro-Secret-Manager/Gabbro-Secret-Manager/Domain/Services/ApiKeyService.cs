@@ -7,7 +7,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
 {
     public class ApiKeyService(IGabbroStorageService storage, JweService jweService)
     {
-        public async Task<(string Token, ApiKey ApiKey)> CreateApiTokenAsync(StorageKey userKey, string name, byte[] encryptionKey)
+        public async Task<(string Token, ApiKey ApiKey)> CreateApiTokenAsync(StorageKey<User> userKey, string name, byte[] encryptionKey)
         {
             var id = Guid.NewGuid();
             var apiKeyKey = ApiKey.GetStorageKey(id);
@@ -24,7 +24,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return (token, apiKey);
         }
 
-        public Task<Dictionary<StorageKey, ApiKey>> GetApiKeys(StorageKey userKey) => storage.GetApiKeys(userKey);
+        public Task<Dictionary<StorageKey<ApiKey>, ApiKey>> GetApiKeys(StorageKey<User> userKey) => storage.GetApiKeys(userKey);
 
         public Task DeleteApiKey(Guid apiKeyId)
         {
@@ -32,7 +32,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return storage.Delete(apiKeyKey);
         }
 
-        public async Task<bool> VerifyOwner(StorageKey userKey, Guid apiKeyId)
+        public async Task<bool> VerifyOwner(StorageKey<User> userKey, Guid apiKeyId)
         {
             var apiKeyKey = ApiKey.GetStorageKey(apiKeyId);
             if (await storage.TryGet<ApiKey>(apiKeyKey) is not (true, var apiKey))
@@ -41,10 +41,11 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return apiKey!.Owner.Equals(userKey);
         }
 
-        public async Task<(bool IsValid, StorageKey userKey, byte[] encryptionKey)> ValidateApiTokenAsync(string token)
+        public async Task<(bool IsValid, StorageKey<User> userKey, byte[] encryptionKey)> ValidateApiTokenAsync(string token)
         {
+            var defaultValue = (false, StorageKey<User>.Empty, Array.Empty<byte>());
             if (!await jweService.IsValid(token)) 
-                return (false, StorageKey.Empty, []);
+                return defaultValue;
             var claims = await jweService.GetClaims(token);
             var id = Guid.Parse(claims["id"]);
             var apiKeyKey = ApiKey.GetStorageKey(id);
@@ -52,10 +53,10 @@ namespace Gabbro_Secret_Manager.Domain.Services
             var type = claims["type"];
 
             if (type != "apiToken")
-                return (false, StorageKey.Empty, []);
+                return defaultValue;
 
             if (await storage.TryGet<ApiKey>(apiKeyKey) is not (true, var apiKey))
-                return (false, StorageKey.Empty, []);
+                return defaultValue;
 
             return (true, apiKey!.Owner, encryptionKey);
         }

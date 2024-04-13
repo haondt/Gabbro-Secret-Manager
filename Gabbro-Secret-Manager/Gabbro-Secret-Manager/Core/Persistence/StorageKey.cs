@@ -1,42 +1,35 @@
-﻿using System.ComponentModel;
+﻿using Newtonsoft.Json;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Gabbro_Secret_Manager.Core.Persistence
 {
-    [TypeConverter(typeof(StorageKeyConverter))]
-    public readonly struct StorageKey : IEquatable<StorageKey>, IParsable<StorageKey>
+
+    [JsonConverter(typeof(StorageKeyJsonConverter))]
+    [TypeConverter(typeof(StorageKeyStringConverter))]
+    public class StorageKey(Type type, string value, StorageKey? parent = null) : IEquatable<StorageKey>
     {
-        private const string INTERNAL_VALUE_PREFIX = "StorageKey:";
+        public Type Type => type;
+        public string Value { get; } = value;
+        public StorageKey? Parent { get; } = parent;
 
-        public StorageKey(string value)
+        public override int GetHashCode()
         {
-            Value = $"{INTERNAL_VALUE_PREFIX}{value}";
+            var hashCode = new HashCode();
+            hashCode.Add(Type);
+            hashCode.Add(Value);
+            if (Parent is not null)
+                hashCode.Add(Parent.GetHashCode());
+            return hashCode.ToHashCode();
         }
-
-        private string Value { get; }
-
-        private static string GetRawValue(string internalValue)
+        public override bool Equals([NotNullWhen(true)] object? obj) => obj is StorageKey sko && Equals(sko);
+        public bool Equals(StorageKey? other)
         {
-            if (!internalValue.StartsWith(INTERNAL_VALUE_PREFIX))
-                throw new ArgumentException($"{nameof(Value)} in unexpected format");
-            return internalValue[INTERNAL_VALUE_PREFIX.Length..];
-        }
-        private static bool TryGetRawValue(string? internalValue, out string rawValue)
-        {
-            rawValue = "";
-            if (string.IsNullOrEmpty(internalValue))
+            if (!Value.Equals(other?.Value))
                 return false;
-            if (!internalValue.StartsWith(INTERNAL_VALUE_PREFIX))
-                return false;
-            rawValue = internalValue[INTERNAL_VALUE_PREFIX.Length..];
-            return true;
-        }
-
-        public override readonly int GetHashCode() => Value.GetHashCode();
-        public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is StorageKey sko && Equals(sko);
-        public readonly bool Equals(StorageKey other)
-        {
-            return Value.Equals(other.Value);
+            if (Parent is null)
+                return other.Parent is null;
+            return Parent.Equals(other.Parent);
         }
 
         public static bool operator ==(StorageKey left, StorageKey right)
@@ -49,30 +42,39 @@ namespace Gabbro_Secret_Manager.Core.Persistence
             return !(left == right);
         }
 
+
+        public static StorageKey Empty { get; } = new StorageKey(typeof(object), "");
+
         public override string ToString()
         {
             return Value;
         }
 
-        public static StorageKey Empty { get; } = new StorageKey("");
+    }
 
-        public readonly StorageKey Extend(StorageKey extension)
-            => new(GetRawValue(Value) + "+" + GetRawValue(extension.Value));
-
-        public static StorageKey Parse(string s, IFormatProvider? provider = null) => new(GetRawValue(s));
-
-        public static bool TryParse([NotNullWhen(true)] string? s, [MaybeNullWhen(false)] out StorageKey result)
-            => TryParse(s, null, out result);
-
-        public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out StorageKey result)
+    [JsonConverter(typeof(StorageKeyJsonConverter))]
+    public class StorageKey<T> : StorageKey
+    {
+        public StorageKey(string value, StorageKey? parent = null) : base(typeof(T), value, parent)
         {
-            if (!TryGetRawValue(s, out var rawValue))
-            {
-                result = StorageKey.Empty;
-                return false;
-            }
-            result = new(rawValue);
-            return true;
+        }
+
+        public StorageKey<T2> Extend<T2>(string value)
+        {
+            return new StorageKey<T2>(value, this);
+        }
+
+        public static new StorageKey<T> Empty { get; } = new StorageKey<T>("");
+
+    }
+
+    public static class StorageKeyExtensions
+    {
+        public static StorageKey<T> As<T>(this StorageKey storageKey)
+        {
+            if (storageKey.Type != typeof(T))
+                throw new InvalidCastException($"Cannot convert {storageKey.Type} to {typeof(T)}");
+            return new StorageKey<T>(storageKey.Value, storageKey.Parent);
         }
     }
 }

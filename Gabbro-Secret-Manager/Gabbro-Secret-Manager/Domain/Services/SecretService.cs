@@ -8,7 +8,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
 {
     public class SecretService(IGabbroStorageService storage, IMemoryCache memoryCache)
     {
-        public Task<List<string>> GetAvailableTags(byte[] encryptionKey, StorageKey userKey)
+        public Task<List<string>> GetAvailableTags(byte[] encryptionKey, StorageKey<User> userKey)
         {
             return memoryCache.GetOrCreateAsync(userKey, async e =>
             {
@@ -18,7 +18,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
             })!;
         }
 
-        public async Task<(string Value, HashSet<string> Tags)> GetSecret(byte[] encryptionKey, StorageKey secretKey)
+        public async Task<(string Value, HashSet<string> Tags)> GetSecret(byte[] encryptionKey, StorageKey<Secret> secretKey)
         {
             var secret = await storage.Get<Secret>(secretKey);
             var decryptedValue = CryptoService.Decrypt(
@@ -28,7 +28,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return (decryptedValue, secret.Tags);
         }
 
-        public async Task<(bool Success, string Value, string comments, HashSet<string> Tags)> TryGetSecret(byte[] encryptionKey, StorageKey secretKey)
+        public async Task<(bool Success, string Value, string comments, HashSet<string> Tags)> TryGetSecret(byte[] encryptionKey, StorageKey<Secret> secretKey)
         {
             var (hasSecret, secret) = await storage.TryGet<Secret>(secretKey);
             if (!hasSecret)
@@ -42,10 +42,10 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return (true, decryptedValue, secret.Comments, secret.Tags);
         }
 
-        public async Task UpsertSecret(byte[] encryptionKey, StorageKey userKey, string key, string value, string comments, HashSet<string>? tags = null)
+        public async Task UpsertSecret(byte[] encryptionKey, StorageKey<User> userKey, string key, string value, string comments, HashSet<string>? tags = null)
         {
             memoryCache.Remove(userKey);
-            var secretKey = userKey.Extend<Secret>(key);
+            var secretKey = Secret.GetStorageKey(userKey, key);
             var (encryptedValue, initializationVector) = CryptoService.Encrypt(value, encryptionKey);
             var secret = new Secret
             {
@@ -59,20 +59,20 @@ namespace Gabbro_Secret_Manager.Domain.Services
             await storage.Set(secretKey, secret);
         }
 
-        public Task<bool> ContainsSecret(StorageKey userKey, string key)
+        public Task<bool> ContainsSecret(StorageKey<User> userKey, string key)
         {
-            var secretKey = userKey.Extend<Secret>(key);
+            var secretKey = Secret.GetStorageKey(userKey, key);
             return storage.ContainsKey(secretKey);
         }
 
-        public async Task DeleteSecret(StorageKey userKey, string key)
+        public async Task DeleteSecret(StorageKey<User> userKey, string key)
         {
             memoryCache.Remove(userKey);
-            var secretKey = userKey.Extend<Secret>(key);
+            var secretKey = Secret.GetStorageKey(userKey, key);
             await storage.Delete(secretKey);
         }
 
-        public async Task<List<(string Key, string Value, HashSet<string> Tags)>> GetSecrets(byte[] encryptionKey, StorageKey userKey)
+        public async Task<List<(string Key, string Value, HashSet<string> Tags)>> GetSecrets(byte[] encryptionKey, StorageKey<User> userKey)
         {
             var secrets = await storage.GetSecrets(userKey);
 

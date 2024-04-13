@@ -11,15 +11,15 @@
             return Task.CompletedTask;
         }
 
-        public Task<T> Get<T>(StorageKey key) => Task.FromResult((T)_storage[key]);
+        public Task<T> Get<T>(StorageKey<T> key) => Task.FromResult((T)_storage[key]);
 
-        public Task Set<T>(StorageKey key, T value)
+        public Task Set<T>(StorageKey<T> key, T value)
         {
             _storage[key] = value ?? throw new ArgumentNullException(nameof(value));
             return Task.CompletedTask;
         }
 
-        public Task<(bool, T?)> TryGet<T>(StorageKey key)
+        public Task<(bool, T?)> TryGet<T>(StorageKey<T> key)
         {
             if (_storage.TryGetValue(key, out var valueObj) && valueObj is T)
             {

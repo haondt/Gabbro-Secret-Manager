@@ -1,4 +1,5 @@
-﻿using Gabbro_Secret_Manager.Core.Persistence;
+﻿using Gabbro_Secret_Manager.Core;
+using Gabbro_Secret_Manager.Core.Persistence;
 using Gabbro_Secret_Manager.Domain.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -104,14 +105,14 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
                 await SetDataAsync(data);
             });
 
-        public Task<T> Get<T>(StorageKey key) =>
+        public Task<T> Get<T>(StorageKey<T> key) =>
             TryAcquireSemaphoreAnd(async () =>
             {
                 var data = await GetDataAsync();
                 return (T)data.Values[key]!;
             });
 
-        public Task<List<Secret>> GetSecrets(StorageKey userKey) =>
+        public Task<List<Secret>> GetSecrets(StorageKey<User> userKey) =>
             TryAcquireSemaphoreAnd(async () =>
             {
                 var data = await GetDataAsync();
@@ -123,18 +124,19 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
                     .ToList();
             });
 
-        public Task<Dictionary<StorageKey, ApiKey>> GetApiKeys(StorageKey userKey) =>
+        public Task<Dictionary<StorageKey<ApiKey>, ApiKey>> GetApiKeys(StorageKey<User> userKey) =>
             TryAcquireSemaphoreAnd(async () =>
             {
                 var data = await GetDataAsync();
                 return data.Values
+                    .Where(kvp => kvp.Key.Type == typeof(ApiKey))
                     .Where(kvp => kvp.Value != null && kvp.Value is ApiKey)
-                    .Select(kvp => (kvp.Key, (ApiKey)kvp.Value!))
+                    .Select(kvp => (kvp.Key.As<ApiKey>(), (kvp.Value as ApiKey)!))
                     .Where(t => t.Item2.Owner.Equals(userKey))
-                    .ToDictionary(t => t.Key, t => t.Item2);
+                    .ToDictionary(t => t.Item1, t => t.Item2);
             });
 
-        public Task Set<T>(StorageKey key, T value) =>
+        public Task Set<T>(StorageKey<T> key, T value) =>
             TryAcquireSemaphoreAnd(async () =>
             {
                 var data = await GetDataAsync();
@@ -142,7 +144,7 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
                 await SetDataAsync(data);
             });
 
-        public Task<(bool Success, T? Value)> TryGet<T>(StorageKey key) =>
+        public Task<(bool Success, T? Value)> TryGet<T>(StorageKey<T> key) =>
             TryAcquireSemaphoreAnd(async () =>
             {
                 var data = await GetDataAsync();

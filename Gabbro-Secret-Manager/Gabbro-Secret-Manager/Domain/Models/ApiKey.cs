@@ -5,7 +5,7 @@ namespace Gabbro_Secret_Manager.Domain.Models
 {
     public class ApiKey
     {
-        public static StorageKey<ApiKey> GetStorageKey(Guid id) => new(id.ToString());
+        public static StorageKey<ApiKey> GetStorageKey(Guid id) => StorageKey<ApiKey>.Create(id.ToString());
         public required StorageKey<User> Owner { get; set; }
         public required string Name { get; set; }
         public required DateTime Created { get; set; }

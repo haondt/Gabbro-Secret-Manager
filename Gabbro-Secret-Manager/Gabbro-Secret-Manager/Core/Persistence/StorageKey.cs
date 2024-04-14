@@ -7,29 +7,25 @@ namespace Gabbro_Secret_Manager.Core.Persistence
 
     [JsonConverter(typeof(StorageKeyJsonConverter))]
     [TypeConverter(typeof(StorageKeyStringConverter))]
-    public class StorageKey(Type type, string value, StorageKey? parent = null) : IEquatable<StorageKey>
+    public class StorageKey : IEquatable<StorageKey>
     {
-        public Type Type => type;
-        public string Value { get; } = value;
-        public StorageKey? Parent { get; } = parent;
+        public IReadOnlyList<StorageKeyPart> Parts { get; }
+        public Type Type => Parts[^1].Type;
 
         public override int GetHashCode()
         {
             var hashCode = new HashCode();
-            hashCode.Add(Type);
-            hashCode.Add(Value);
-            if (Parent is not null)
-                hashCode.Add(Parent.GetHashCode());
+            foreach(var part in Parts)
+                hashCode.Add(part.GetHashCode());
             return hashCode.ToHashCode();
         }
+
         public override bool Equals([NotNullWhen(true)] object? obj) => obj is StorageKey sko && Equals(sko);
         public bool Equals(StorageKey? other)
         {
-            if (!Value.Equals(other?.Value))
+            if (other is null)
                 return false;
-            if (Parent is null)
-                return other.Parent is null;
-            return Parent.Equals(other.Parent);
+            return Parts.SequenceEqual(other.Parts);
         }
 
         public static bool operator ==(StorageKey left, StorageKey right)
@@ -43,38 +39,72 @@ namespace Gabbro_Secret_Manager.Core.Persistence
         }
 
 
-        public static StorageKey Empty { get; } = new StorageKey(typeof(object), "");
+        protected StorageKey(IReadOnlyList<StorageKeyPart> parts)
+        {
+            if (parts.Count < 1)
+                throw new ArgumentException("Cannot initialize typed storage key without at least one part.");
+            Parts = parts;
+        }
+        public static StorageKey Create(IReadOnlyList<StorageKeyPart> parts) => new(parts);
+        public static StorageKey Create(Type type, string value) => new([new(type, value)]);
+        public static StorageKey Empty(Type type) => Create(type, "");
+        public StorageKey Extend(Type type, string value) => new([.. Parts, new(type, value)]);
 
         public override string ToString()
         {
-            return Value;
+            return $"{nameof(StorageKey)}: {string.Join(',', Parts.Select(p => p.ToString()))}";
+        }
+    }
+
+    public readonly struct StorageKeyPart(Type type, string value)
+    {
+        public Type Type { get; } = type;
+        public string Value { get; } = value;
+        public override int GetHashCode()
+        {
+            var hashCode = new HashCode();
+            hashCode.Add(Type);
+            hashCode.Add(Value);
+            return hashCode.ToHashCode();
         }
 
+        public override string ToString()
+        {
+            return $"{Type.Name}+{Value}";
+        }
     }
 
     [JsonConverter(typeof(StorageKeyJsonConverter))]
     public class StorageKey<T> : StorageKey
     {
-        public StorageKey(string value, StorageKey? parent = null) : base(typeof(T), value, parent)
+        private StorageKey(IReadOnlyList<StorageKeyPart> parts) : base(parts)
         {
+            if (parts[^1].Type != typeof(T))
+                throw new ArgumentException("Last type in part collection must be same as generic type");
         }
 
-        public StorageKey<T2> Extend<T2>(string value)
-        {
-            return new StorageKey<T2>(value, this);
-        }
-
-        public static new StorageKey<T> Empty { get; } = new StorageKey<T>("");
-
+        public static new StorageKey<T> Create(IReadOnlyList<StorageKeyPart> parts) => new(parts);
+        public static StorageKey<T> Create(string value) => new([new(typeof(T), value)]);
+        public static new StorageKey<T> Empty { get; } = Create("");
+        public StorageKey<T2> Extend<T2>(string value) => new([.. Parts, new(typeof(T2), value)]);
     }
 
     public static class StorageKeyExtensions
     {
-        public static StorageKey<T> As<T>(this StorageKey storageKey)
+        public static StorageKey<T> As<T>(this StorageKey storageKey) => StorageKey<T>.Create(storageKey.Parts);
+
+        public static StorageKey AsGeneric(this StorageKey storageKey)
         {
-            if (storageKey.Type != typeof(T))
-                throw new InvalidCastException($"Cannot convert {storageKey.Type} to {typeof(T)}");
-            return new StorageKey<T>(storageKey.Value, storageKey.Parent);
+            var storageKeyType = typeof(StorageKey<>).MakeGenericType(storageKey.Parts[^1].Type);
+            var createMethod = storageKeyType.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                .Where(m => m.Name == "Create")
+                .First(m =>
+                {
+                    var p = m.GetParameters();
+                    return p.Length == 1 && p[0].ParameterType == typeof(IReadOnlyList<StorageKeyPart>);
+                });
+            var genericStorageKey = createMethod.Invoke(null, [storageKey.Parts]);
+            return (StorageKey)genericStorageKey!;
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
 {
     internal class DataObject
     {
-        public Dictionary<StorageKey, object?> Values = [];
+        public Dictionary<string, object?> Values = [];
     }
 
     public class FileGabbroStorage : IGabbroStorage
@@ -93,14 +93,14 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
             TryAcquireSemaphoreAnd(async () =>
             {
                 var data = await GetDataAsync();
-                return data.Values.ContainsKey(key);
+                return data.Values.ContainsKey(StorageKeyConvert.Serialize(key));
             });
 
         public Task Delete(StorageKey key) =>
             TryAcquireSemaphoreAnd(async () =>
             {
                 var data = await GetDataAsync();
-                if (!data.Values.Remove(key))
+                if (!data.Values.Remove(StorageKeyConvert.Serialize(key)))
                     return;
                 await SetDataAsync(data);
             });
@@ -109,7 +109,7 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
             TryAcquireSemaphoreAnd(async () =>
             {
                 var data = await GetDataAsync();
-                return (T)data.Values[key]!;
+                return (T)data.Values[StorageKeyConvert.Serialize(key)]!;
             });
 
         public Task<List<Secret>> GetSecrets(StorageKey<User> userKey) =>
@@ -129,9 +129,8 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
             {
                 var data = await GetDataAsync();
                 return data.Values
-                    .Where(kvp => kvp.Key.Type == typeof(ApiKey))
                     .Where(kvp => kvp.Value != null && kvp.Value is ApiKey)
-                    .Select(kvp => (kvp.Key.As<ApiKey>(), (kvp.Value as ApiKey)!))
+                    .Select(kvp => (StorageKeyConvert.Deserialize<ApiKey>(kvp.Key), (kvp.Value as ApiKey)!))
                     .Where(t => t.Item2.Owner.Equals(userKey))
                     .ToDictionary(t => t.Item1, t => t.Item2);
             });
@@ -140,7 +139,7 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
             TryAcquireSemaphoreAnd(async () =>
             {
                 var data = await GetDataAsync();
-                data.Values[key] = value;
+                data.Values[StorageKeyConvert.Serialize(key)] = value;
                 await SetDataAsync(data);
             });
 
@@ -148,7 +147,7 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
             TryAcquireSemaphoreAnd(async () =>
             {
                 var data = await GetDataAsync();
-                if (data.Values.TryGetValue(key, out var value) && value is T)
+                if (data.Values.TryGetValue(StorageKeyConvert.Serialize(key), out var value) && value is T)
                     return (true, (T?)value);
                 return (false, default);
             });

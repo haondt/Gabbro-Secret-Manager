@@ -6,6 +6,10 @@ using Gabbro_Secret_Manager.Domain.Persistence;
 using Gabbro_Secret_Manager.Domain.Services;
 using Gabbro_Secret_Manager.Views.Shared;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
+using MongoDB.Driver.Core.Events;
 
 namespace Gabbro_Secret_Manager.Domain
 {
@@ -13,29 +17,55 @@ namespace Gabbro_Secret_Manager.Domain
     {
         public static IServiceCollection AddGabbroServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<EncryptionKeyServiceSettings>(configuration.GetSection(nameof(EncryptionKeyServiceSettings)));
-            services.AddSingleton<EncryptionKeyService>();
+            // storage
             services.AddSingleton<IGabbroStorageService, GabbroStorageService>();
             services.AddSingleton<IStorage>(sp => sp.GetRequiredService<IGabbroStorage>());
             services.AddSingleton<IGabbroStorage, FileGabbroStorage>();
             services.AddSingleton<IStorageService>(sp => sp.GetRequiredService<IGabbroStorageService>());
+
+            // services
+            services.Configure<EncryptionKeyServiceSettings>(configuration.GetSection(nameof(EncryptionKeyServiceSettings)));
+            services.AddSingleton<EncryptionKeyService>();
             services.AddSingleton<SecretService>();
             services.AddSingleton<UserDataService>();
+
+            // lifetime hooks
             services.AddScoped<ILifetimeHook, LoginHook>();
             services.AddScoped<ILifetimeHook, RegisterHook>();
-            services.AddScoped<GabbroControllerHelper>();
-            services.AddScoped<IControllerHelper>(sp => sp.GetRequiredService<GabbroControllerHelper>());
-            services.AddScoped<IGabbroControllerHelper>(sp => sp.GetRequiredService<GabbroControllerHelper>());
 
+            // api keys
             services.Configure<JweSettings>(configuration.GetSection(nameof(JweSettings)));
             JweSettings.Validate(services.AddOptions<JweSettings>()).ValidateOnStart();
             services.AddSingleton<JweService>();
             services.AddSingleton<ApiKeyService>();
             services.AddScoped<ApiSessionService>();
 
+            // views
+            services.AddScoped<GabbroControllerHelper>();
+            services.AddScoped<IControllerHelper>(sp => sp.GetRequiredService<GabbroControllerHelper>());
+            services.AddScoped<IGabbroControllerHelper>(sp => sp.GetRequiredService<GabbroControllerHelper>());
+            services.RegisterPages();
+
+            // api filters
             services.AddScoped<ApiAuthenticationFilter>();
             services.AddScoped<ApiValidationFilter>();
             services.AddScoped<ApiErrorFilter>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddMongoDb(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<MongoDbSettings>(configuration.GetSection(nameof(MongoDbSettings)));
+            services.AddSingleton<IMongoClient>(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+                var clientSettings = MongoClientSettings.FromConnectionString(settings.ConnectionString);
+                return new MongoClient(clientSettings);
+            });
+            services.AddSingleton<IGabbroStorage, MongoDbGabbroStorage>();
+            BsonSerializer.RegisterGenericSerializerDefinition(typeof(StorageKey<>), typeof(StorageKeyBsonConverter<>));
+            BsonSerializer.RegisterSerializer(typeof(StorageKey), new StorageKeyBsonConverter());
 
             return services;
         }
@@ -59,6 +89,7 @@ namespace Gabbro_Secret_Manager.Domain
             services.RegisterPage("confirmExportDataPrompt", "ConfirmExportDataPrompt", _ => new ConfirmExportDataPromptModel(), true, true);
             return services;
         }
+
         public static IServiceCollection RegisterPage(this IServiceCollection services,
             string page,
             string viewPath,

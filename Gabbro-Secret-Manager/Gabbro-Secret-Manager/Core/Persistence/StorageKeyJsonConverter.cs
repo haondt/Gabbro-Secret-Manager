@@ -15,23 +15,27 @@ namespace Gabbro_Secret_Manager.Core.Persistence
 
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
-            JObject obj = JObject.Load(reader);
-            var keydata = obj.ToObject<StorageKeyRepresentation>() ?? throw new JsonSerializationException("Unable to deserialize storage key");
-            var storageKeyType = typeof(StorageKey<>).MakeGenericType(keydata.Type);
-            return Activator.CreateInstance(storageKeyType, keydata.Value, keydata.Parent?.AsStorageKey());
+            if (reader.TokenType != JsonToken.String
+                || reader.Value is not string keyString
+                || keyString == null)
+                throw new JsonSerializationException("Unable to deserialize storage key: input string is null");
+
+            return StorageKeyConvert.Deserialize(keyString).AsGeneric();
         }
 
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             if (value == null)
             {
-                writer.WriteNull(); 
+                writer.WriteNull();
                 return;
             }
-            if (value is not StorageKey sk)
-                throw new JsonSerializationException($"object was of unexpected type {value.GetType()}");
-            JObject obj = JObject.FromObject(StorageKeyRepresentation.FromStorageKey(sk), serializer);
-            obj.WriteTo(writer);
+
+            if (value is not StorageKey storageKey)
+                throw new JsonSerializationException($"Unexpected value when trying to serialize StorageKey. Expected StorageKey, got {value.GetType().FullName}");
+
+            var serializedKey = StorageKeyConvert.Serialize(storageKey);
+            writer.WriteValue(serializedKey);
         }
     }
 }

@@ -21,7 +21,7 @@ builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddCoreServices(builder.Configuration)
     .AddGabbroServices(builder.Configuration)
-    .RegisterPages();
+    .AddMongoDb(builder.Configuration);
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {

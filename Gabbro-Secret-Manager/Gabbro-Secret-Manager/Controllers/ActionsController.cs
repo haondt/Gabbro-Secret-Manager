@@ -95,7 +95,7 @@ namespace Gabbro_Secret_Manager.Controllers
             if (!Regex.IsMatch(key, @"^[a-zA-z0-9_-]+$"))
                 return await helper.GetView(this, "upsertSecretForm", await upsertSecretFormModelGeneratorGenerator("Secret name may only contain the characters [a-zA-Z0-9_-]+"));
 
-            if (currentKey != null && currentKey != key && await secretService.ContainsSecret(userKey, key))
+            if (((currentKey != null && currentKey != key) || currentKey == null) && await secretService.ContainsSecret(userKey, key))
                 return await helper.GetView(this, "upsertSecretForm", await upsertSecretFormModelGeneratorGenerator("Secret name already in use"));
 
             await secretService.UpsertSecret(encryptionKey, userKey, key, value, comments, [.. tags]);

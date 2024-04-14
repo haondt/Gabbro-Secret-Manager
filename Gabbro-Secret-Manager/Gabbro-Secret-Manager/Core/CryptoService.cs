@@ -54,15 +54,14 @@ namespace Gabbro_Secret_Manager.Core
             using Aes aesAlg = Aes.Create();
             aesAlg.Key = key;
             aesAlg.GenerateIV();
+            aesAlg.Padding = PaddingMode.PKCS7;
 
             ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
 
             using var msEncrypt = new MemoryStream();
             using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-            {
-                using var swEncrypt = new StreamWriter(csEncrypt);
-                swEncrypt.Write(input);
-            }
+                using (var swEncrypt = new StreamWriter(csEncrypt))
+                    swEncrypt.Write(input); // disposing early to ensure final block flush
 
             return (
                 Convert.ToBase64String(msEncrypt.ToArray()),
@@ -80,6 +79,7 @@ namespace Gabbro_Secret_Manager.Core
             using Aes aesAlg = Aes.Create();
             aesAlg.Key = key;
             aesAlg.IV = iv;
+            aesAlg.Padding = PaddingMode.PKCS7;
 
             ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
             using var msDecrypt = new MemoryStream(Convert.FromBase64String(input));

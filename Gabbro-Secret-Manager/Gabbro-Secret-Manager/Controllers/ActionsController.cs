@@ -117,7 +117,7 @@ namespace Gabbro_Secret_Manager.Controllers
         }
 
         [HttpGet("export-data/secrets.json")]
-        [Produces("text/json")]
+        [Produces("application/json")]
         public async Task<IActionResult> ExportDataFile()
         {
             if (!await sessionService.IsAuthenticatedAsync())
@@ -128,17 +128,7 @@ namespace Gabbro_Secret_Manager.Controllers
 
             var userKey = await sessionService.GetUserKeyAsync();
             var secrets = await secretService.GetSecrets(encryptionKey, userKey);
-
-            var result = new UserDataDump
-            {
-                Secrets = secrets.Select(s => new DumpSecret
-                {
-                    Key = s.Key,
-                    Value = s.Value,
-                    Tags = s.Tags
-                }).ToList()
-            };
-
+            var result = new UserDataDump(secrets);
             return new OkObjectResult(result);
         }
 

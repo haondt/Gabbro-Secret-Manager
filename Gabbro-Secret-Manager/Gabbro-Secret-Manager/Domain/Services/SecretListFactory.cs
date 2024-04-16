@@ -23,14 +23,14 @@ namespace Gabbro_Secret_Manager.Domain.Services
             var filteredSecrets = secrets
                     .Where(s => searchTags.All(t => s.Tags.Any(t2 => t.Equals(t2, StringComparison.OrdinalIgnoreCase))));
             if (data.Form.TryGetValue<string>("search", out var searchString))
-                filteredSecrets = filteredSecrets.Where(s => s.Key.Contains(searchString, StringComparison.OrdinalIgnoreCase));
+                filteredSecrets = filteredSecrets.Where(s => s.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase));
 
             var model = new SecretListModel
             {
                 Values = filteredSecrets
                     .Select(s => new ViewSecret
                     {
-                        Name = s.Key,
+                        Name = s.Name,
                         Value = s.Value,
                         Tags = s.Tags
                     })

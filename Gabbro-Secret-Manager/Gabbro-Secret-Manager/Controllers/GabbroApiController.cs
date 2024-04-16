@@ -19,19 +19,23 @@ namespace Gabbro_Secret_Manager.Controllers
         {
             var (userKey, encryptionKey) = await apiSessionService.GetUserDataAsync();
             var secretKey = Secret.GetStorageKey(userKey, secretName);
-            var (existsSecret, secret, comments, secretTags) = await secretService.TryGetSecret(encryptionKey, secretKey);
+            var (existsSecret, secret) = await secretService.TryGetSecret(encryptionKey, secretKey);
 
             if (!existsSecret)
                 return NotFound();
 
             Response.StatusCode = 200;
-            return new JsonResult(new
-            {
-                Name = secretName,
-                Value = secret,
-                Comments = comments,
-                Tags = secretTags
-            });
+            return new JsonResult(new DumpSecret(secret!));
+        }
+
+        [HttpGet("secrets")]
+        [Produces("application/json")]
+        public async Task<IActionResult> ExportDataFile()
+        {
+            var (userKey, encryptionKey) = await apiSessionService.GetUserDataAsync();
+            var secrets = await secretService.GetSecrets(encryptionKey, userKey);
+            var result = new UserDataDump(secrets);
+            return new OkObjectResult(result);
         }
     }
 }

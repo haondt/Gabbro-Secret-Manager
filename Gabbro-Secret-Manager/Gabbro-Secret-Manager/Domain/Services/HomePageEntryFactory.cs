@@ -25,7 +25,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
                     Values = secrets
                     .Select(s => new ViewSecret
                     {
-                        Name = s.Key,
+                        Name = s.Name,
                         Value = s.Value,
                         Tags = s.Tags
                     })

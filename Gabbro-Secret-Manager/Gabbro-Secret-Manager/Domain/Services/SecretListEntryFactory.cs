@@ -22,14 +22,14 @@ namespace Gabbro_Secret_Manager.Domain.Services
 
             var userKey = await sessionService.GetUserKeyAsync();
             var secretKey = Secret.GetStorageKey(userKey, secretName);
-            var (secret, tags) = await secretService.GetSecret(encryptionKey!, secretKey);
+            var secret = await secretService.GetSecret(encryptionKey!, secretKey);
             var model = new SecretListEntryModel
             {
                 Secret = new ViewSecret
                 {
                     Name = secretName,
-                    Value = secret,
-                    Tags = tags,
+                    Value = secret.Value,
+                    Tags = secret.Tags,
                 }
             };
             return await Create(model, responseOptions);

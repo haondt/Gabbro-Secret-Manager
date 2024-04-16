@@ -41,7 +41,7 @@ namespace Gabbro_Secret_Manager.Controllers
 
             sessionService.Reset(sessionToken);
             var userData = await userDataService.GetUserData(session.Owner);
-            encryptionKeyService.UpsertEncryptionKey(sessionToken!, session.Owner, password!, userData.EncryptionKeySettings);
+            encryptionKeyService.CreateEncryptionKey(sessionToken!, session.Owner, password!, userData.EncryptionKeySettings);
             Response.Cookies.AddAuthentication(sessionToken, sessionExpiry);
             return await helper.GetView(this, _indexSettings.HomePage);
         }
@@ -123,7 +123,7 @@ namespace Gabbro_Secret_Manager.Controllers
             if (!await sessionService.IsAuthenticatedAsync())
                 return new UnauthorizedResult();
 
-            if (!encryptionKeyService.TryGet(sessionService.SessionToken!, out var encryptionKey))
+            if (!encryptionKeyService.TryGetEncryptionKey(sessionService.SessionToken!, out var encryptionKey))
                 return new UnauthorizedResult();
 
             var userKey = await sessionService.GetUserKeyAsync();
@@ -174,7 +174,7 @@ namespace Gabbro_Secret_Manager.Controllers
                 return await helper.GetView(this, new ApiKeyPasswordConfirmationDynamicFormFactory(name, "incorrect password"));
             var userData = await userDataService.GetUserData(session.Owner);
 
-            var encryptionKey = encryptionKeyService.CreateApiEncryptionKey(session.Owner, password, userData.EncryptionKeySettings);
+            var encryptionKey = encryptionKeyService.CreateEncryptionKey(session.Owner, password, userData.EncryptionKeySettings);
             var (token, apiKey) = await apiKeyService.CreateApiTokenAsync(session.Owner, name, encryptionKey);
 
             return await helper.GetView(this, "settings", async () =>

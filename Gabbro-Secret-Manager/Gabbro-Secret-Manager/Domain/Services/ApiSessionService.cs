@@ -21,18 +21,18 @@ namespace Gabbro_Secret_Manager.Domain.Services
 
             _apiKeyLazy = new(() =>
             {
-                var defaultValue = Task.FromResult<(bool, StorageKey<User>, byte[])>((false, StorageKey<User>.Empty, []));
+                var defaultValue = () => Task.FromResult<(bool, StorageKey<User>, byte[])>((false, StorageKey<User>.Empty, []));
 
                 if (_httpContextAccessor.HttpContext == null)
-                    return defaultValue;
+                    return defaultValue();
                 var authorizationHeaders = _httpContextAccessor.HttpContext.Request.Headers.Authorization;
                 if (authorizationHeaders.Count != 1
                     || string.IsNullOrEmpty(authorizationHeaders[0])
                     || !authorizationHeaders[0]!.StartsWith("Bearer "))
-                    return defaultValue;
+                    return defaultValue();
                 var token = authorizationHeaders[0]!["Bearer ".Length..];
                 if (string.IsNullOrEmpty(token))
-                    return defaultValue;
+                    return defaultValue();
 
                 return _apiKeyService.ValidateApiTokenAsync(token);
             });

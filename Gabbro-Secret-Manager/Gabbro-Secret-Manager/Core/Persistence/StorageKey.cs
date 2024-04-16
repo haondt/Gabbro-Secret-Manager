@@ -50,6 +50,14 @@ namespace Gabbro_Secret_Manager.Core.Persistence
         public static StorageKey Empty(Type type) => Create(type, "");
         public StorageKey Extend(Type type, string value) => new([.. Parts, new(type, value)]);
 
+        /// <summary>
+        /// Human readable representation of storage key
+        /// </summary>
+        /// <remarks>
+        /// Note: this should not be used for a unique or stable representation of the storage key.
+        /// For that you should use <see cref="StorageKeyConvert.Serialize"/>
+        /// </remarks>
+        /// <returns></returns>
         public override string ToString()
         {
             return $"{nameof(StorageKey)}: {string.Join(',', Parts.Select(p => p.ToString()))}";

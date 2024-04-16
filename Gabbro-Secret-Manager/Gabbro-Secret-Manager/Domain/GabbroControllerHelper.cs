@@ -41,7 +41,7 @@ namespace Gabbro_Secret_Manager.Domain
             if (await VerifySession(controller) is (false, var invalidSessionResponse))
                 return (false, invalidSessionResponse, []);
 
-            if (!_encryptionKeyService.TryGet(_sessionService.SessionToken!, out var encryptionKey))
+            if (!_encryptionKeyService.TryGetEncryptionKey(_sessionService.SessionToken!, out var encryptionKey))
                 return (false, await GetRefreshEncryptionKeyModalView(controller), []);
 
             return (true, null, encryptionKey);
@@ -61,7 +61,7 @@ namespace Gabbro_Secret_Manager.Domain
                     return await GetForceLoginView(controller);
 
             if (pageEntryFactory.RequiresEncryptionKey)
-                if (!_encryptionKeyService.Contains(_sessionService.SessionToken!))
+                if (!_encryptionKeyService.ContainsEncryptionKeyFor(_sessionService.SessionToken!))
                     return await GetRefreshEncryptionKeyModalView(controller);
 
             var pageEntry = modelFactory != null

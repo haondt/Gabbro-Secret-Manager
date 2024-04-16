@@ -17,7 +17,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
 
         public async Task<PageEntry> Create(IPageRegistry pageRegistry, IRequestData data, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)
         {
-            var encryptionKey = encryptionKeyService.Get(sessionService.SessionToken!);
+            var encryptionKey = encryptionKeyService.GetEncryptionKey(sessionService.SessionToken!);
             var userKey = await sessionService.GetUserKeyAsync();
             var availableTags = await secretService.GetAvailableTags(encryptionKey, userKey);
             var secretName = data.Query.GetValueOrDefault("key", "");

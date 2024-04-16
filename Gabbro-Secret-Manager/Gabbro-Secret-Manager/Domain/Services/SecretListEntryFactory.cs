@@ -18,7 +18,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
         {
             var secretName = data.Query.GetValue<string>(SecretListEntryModel.SecretNameKey);
 
-            var encryptionKey = encryptionKeyService.Get(sessionService.SessionToken!);
+            var encryptionKey = encryptionKeyService.GetEncryptionKey(sessionService.SessionToken!);
 
             var userKey = await sessionService.GetUserKeyAsync();
             var secretKey = Secret.GetStorageKey(userKey, secretName);

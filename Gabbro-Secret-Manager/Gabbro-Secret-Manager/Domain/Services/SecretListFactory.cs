@@ -18,7 +18,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
                 .Where(kvp => kvp.Value.Any(v => "on".Equals(v)))
                 .Select(kvp => kvp.Key);
 
-            var encryptionKey = encryptionKeyService.Get(sessionService.SessionToken!);
+            var encryptionKey = encryptionKeyService.GetEncryptionKey(sessionService.SessionToken!);
             var secrets = await secretService.GetSecrets(encryptionKey!, await sessionService.GetUserKeyAsync());
             var filteredSecrets = secrets
                     .Where(s => searchTags.All(t => s.Tags.Any(t2 => t.Equals(t2, StringComparison.OrdinalIgnoreCase))));

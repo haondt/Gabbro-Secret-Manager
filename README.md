@@ -23,14 +23,19 @@ A super simple secret manager for my home server deployment automation.
 
 ## Retrieve secrets via api
 
-![image](https://github.com/haondt/Gabbro-Secret-Manager/assets/19233365/7c483bd0-2c0c-4034-b386-48c7f9279618)
+![image](https://github.com/haondt/Gabbro-Secret-Manager/assets/19233365/28444cdc-9d57-4c05-be95-8b362110fd2a)
+
 
 Details:
 - Api must be called with an api key as a bearer token
 
 Endpoints:
 - `GET` - `{server-url}/api/secrets` - returns all secrets
-- `GET` - `{server-url}/api/secrets/{SECRET_NAME}` - returns a particular secret
+  - also supports query items
+  - `name` - filter the name of the secret
+  - `tags` - filter for secrets that contain all given tags
+- `GET` - `{server-url}/api/secret/{SECRET_ID}` - returns a particular secret
+- `GET` - `export-data` - gets all user data
 
 ## Export user data
 

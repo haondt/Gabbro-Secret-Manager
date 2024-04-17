@@ -28,10 +28,10 @@ namespace Gabbro_Secret_Manager.Controllers
         }
 
         [HttpGet("secrets")]
-        public async Task<IActionResult> SearchSecrets([FromQuery] string? secretName, [FromQuery] List<string> tags)
+        public async Task<IActionResult> SearchSecrets([FromQuery] string? name, [FromQuery] List<string> tags)
         {
             var (userKey, encryptionKey) = await apiSessionService.GetUserDataAsync();
-            var secrets = await secretService.GetSecrets(encryptionKey, userKey, secretName, tags);
+            var secrets = await secretService.GetSecrets(encryptionKey, userKey, name, tags);
             return new OkObjectResult(secrets.Select(s => new DumpSecret(s)).ToList());
         }
 

@@ -7,7 +7,7 @@ namespace Gabbro_Secret_Manager.Core
     {
         private readonly UserService _userService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
+        private readonly AuthenticationService _authenticationService;
         private Lazy<Task<UserSession?>> _userSessionLazy;
         public async Task<bool> IsAuthenticatedAsync() => await _userSessionLazy.Value != null;
         public async Task<StorageKey<User>> GetUserKeyAsync() => (await _userSessionLazy.Value)?.Owner ?? throw new InvalidOperationException(nameof(GetUserKeyAsync));
@@ -23,10 +23,7 @@ namespace Gabbro_Secret_Manager.Core
             _forcedSessionToken = sessionToken;
             _sessionTokenLazy = new(() =>
             {
-                var cookies = _httpContextAccessor.HttpContext?.Request?.Cookies;
-                if (cookies == null)
-                    return null;
-                if (!cookies.TryGetValue(AuthenticationExtensions.SESSION_TOKEN_COOKIE_KEY, out var sessionToken))
+                if (!_authenticationService.TryGetAuthentication(out var sessionToken))
                     return null;
                 if (string.IsNullOrEmpty(sessionToken))
                     return null;
@@ -46,10 +43,11 @@ namespace Gabbro_Secret_Manager.Core
 
         }
 
-        public SessionService(UserService userService, IHttpContextAccessor httpContextAccessor)
+        public SessionService(UserService userService, IHttpContextAccessor httpContextAccessor, AuthenticationService authenticationService)
         {
             _userService = userService;
             _httpContextAccessor = httpContextAccessor;
+            _authenticationService = authenticationService;
             Reset();
         }
     }

@@ -9,7 +9,12 @@ namespace Gabbro_Secret_Manager.Controllers
     [Route("account")]
     public class AccountController(
         IControllerHelper helper,
-        UserService userService, IPageRegistry pageRegistry, IOptions<IndexSettings> indexOptions, ISessionService sessionService, LifetimeHookService lifetimeHookService) : BaseController
+        UserService userService,
+        IPageRegistry pageRegistry,
+        IOptions<IndexSettings> indexOptions,
+        ISessionService sessionService,
+        LifetimeHookService lifetimeHookService,
+        AuthenticationService authenticationService) : BaseController
     {
         private readonly IPageRegistry _pageRegistry = pageRegistry;
         private readonly IndexSettings _indexSettings = indexOptions.Value;
@@ -26,7 +31,7 @@ namespace Gabbro_Secret_Manager.Controllers
 
             _sessionService.Reset(sessionToken);
             await lifetimeHookService.OnLoginAsync(username, password, userKey, sessionToken);
-            Response.Cookies.AddAuthentication(sessionToken, sessionExpiry);
+            authenticationService.AddAuthentication(sessionToken, sessionExpiry);
             return await helper.GetView(this, _indexSettings.HomePage);
         }
 
@@ -37,7 +42,7 @@ namespace Gabbro_Secret_Manager.Controllers
             {
                 var sessionToken = _sessionService.SessionToken;
                 await userService.EndSession(sessionToken!);
-                Response.Cookies.ExpireAuthentication();
+                authenticationService.ExpireAuthentication();
             }
 
             return await helper.GetView(this, _indexSettings.AuthenticationPage);

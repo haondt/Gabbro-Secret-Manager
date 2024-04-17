@@ -22,7 +22,8 @@ namespace Gabbro_Secret_Manager.Controllers
         ApiKeyService apiKeyService,
         ISessionService sessionService,
         EncryptionKeyService encryptionKeyService,
-        SecretService secretService) : BaseController
+        SecretService secretService,
+        AuthenticationService authenticationService) : BaseController
     {
         private readonly IndexSettings _indexSettings = indexOptions.Value;
 
@@ -41,8 +42,8 @@ namespace Gabbro_Secret_Manager.Controllers
 
             sessionService.Reset(sessionToken);
             var userData = await userDataService.GetUserData(session.Owner);
-            encryptionKeyService.CreateEncryptionKey(sessionToken!, session.Owner, password!, userData.EncryptionKeySettings);
-            Response.Cookies.AddAuthentication(sessionToken, sessionExpiry);
+            encryptionKeyService.CreateEncryptionKey(sessionToken, session.Owner, password!, userData.EncryptionKeySettings);
+            authenticationService.AddAuthentication(sessionToken, sessionExpiry);
             return await helper.GetView(this, _indexSettings.HomePage);
         }
 

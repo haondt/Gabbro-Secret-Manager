@@ -45,6 +45,7 @@ namespace Gabbro_Secret_Manager.Core
 
             services.AddSingleton<FileExtensionContentTypeProvider>();
             services.Configure<AuthenticationSettings>(configuration.GetSection(nameof(AuthenticationSettings)));
+            services.AddScoped<AuthenticationService>();
             services.AddSingleton<CryptoService>();
             services.AddSingleton<UserService>();
             services.AddHttpContextAccessor();

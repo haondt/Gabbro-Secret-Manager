@@ -61,14 +61,14 @@ namespace Gabbro_Secret_Manager.Domain
             {
                 var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
                 var clientSettings = MongoClientSettings.FromConnectionString(settings.ConnectionString);
-                clientSettings.ClusterConfigurator = cb =>
-                {
-                    cb.Subscribe<CommandStartedEvent>(e =>
-                    {
-                        Console.WriteLine(e.CommandName);
-                        Console.WriteLine(e.Command.ToJson());
-                    });
-                };
+                //clientSettings.ClusterConfigurator = cb =>
+                //{
+                //    cb.Subscribe<CommandStartedEvent>(e =>
+                //    {
+                //        Console.WriteLine(e.CommandName);
+                //        Console.WriteLine(e.Command.ToJson());
+                //    });
+                //};
                 return new MongoClient(clientSettings);
             });
             services.AddSingleton<IGabbroStorage, MongoDbGabbroStorage>();

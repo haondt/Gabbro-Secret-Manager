@@ -42,13 +42,16 @@ namespace Gabbro_Secret_Manager.Domain.Services
             return (true, secret.AsDecrypted(decryptedValue));
         }
 
-        public async Task UpsertSecret(byte[] encryptionKey, StorageKey<User> userKey, string key, string value, string comments, HashSet<string>? tags = null)
+        public async Task UpsertSecret(byte[] encryptionKey, StorageKey<User> userKey, string key, string value, string comments, HashSet<string>? tags = null, Guid? id = null)
         {
+            id ??= Guid.NewGuid();
             memoryCache.Remove(userKey);
-            var secretKey = Secret.GetStorageKey(userKey, key);
+
+            var secretKey = Secret.GetStorageKey(userKey, id.Value);
             var (encryptedValue, initializationVector) = CryptoService.Encrypt(value, encryptionKey);
             var secret = new Secret
             {
+                Id = id.Value,
                 Comments = comments,
                 Tags = tags ?? [],
                 EncryptedValue = encryptedValue,
@@ -59,22 +62,16 @@ namespace Gabbro_Secret_Manager.Domain.Services
             await storage.Set(secretKey, secret);
         }
 
-        public Task<bool> ContainsSecret(StorageKey<User> userKey, string key)
-        {
-            var secretKey = Secret.GetStorageKey(userKey, key);
-            return storage.ContainsKey(secretKey);
-        }
-
-        public async Task DeleteSecret(StorageKey<User> userKey, string key)
+        public async Task DeleteSecret(StorageKey<User> userKey, Guid id)
         {
             memoryCache.Remove(userKey);
-            var secretKey = Secret.GetStorageKey(userKey, key);
+            var secretKey = Secret.GetStorageKey(userKey, id);
             await storage.Delete(secretKey);
         }
 
-        public async Task<List<DecryptedSecret>> GetSecrets(byte[] encryptionKey, StorageKey<User> userKey)
+        public async Task<List<DecryptedSecret>> GetSecrets(byte[] encryptionKey, StorageKey<User> userKey, string? secretName = null, IReadOnlyCollection<string>? tags = null)
         {
-            var secrets = await storage.GetSecrets(userKey);
+            var secrets = await storage.GetSecrets(userKey, secretName, tags);
 
             return secrets.Select(s =>
             {

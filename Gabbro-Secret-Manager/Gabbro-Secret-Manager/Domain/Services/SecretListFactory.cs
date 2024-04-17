@@ -28,12 +28,7 @@ namespace Gabbro_Secret_Manager.Domain.Services
             var model = new SecretListModel
             {
                 Values = filteredSecrets
-                    .Select(s => new ViewSecret
-                    {
-                        Name = s.Name,
-                        Value = s.Value,
-                        Tags = s.Tags
-                    })
+                    .Select(ViewSecret.FromSecret)
                     .ToList()
             };
 

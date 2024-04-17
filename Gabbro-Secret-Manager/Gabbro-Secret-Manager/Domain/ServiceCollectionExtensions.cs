@@ -61,6 +61,14 @@ namespace Gabbro_Secret_Manager.Domain
             {
                 var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
                 var clientSettings = MongoClientSettings.FromConnectionString(settings.ConnectionString);
+                clientSettings.ClusterConfigurator = cb =>
+                {
+                    cb.Subscribe<CommandStartedEvent>(e =>
+                    {
+                        Console.WriteLine(e.CommandName);
+                        Console.WriteLine(e.Command.ToJson());
+                    });
+                };
                 return new MongoClient(clientSettings);
             });
             services.AddSingleton<IGabbroStorage, MongoDbGabbroStorage>();
@@ -80,7 +88,7 @@ namespace Gabbro_Secret_Manager.Domain
             services.AddScoped<IGabbroPageEntryFactory, UpsertSecretFormFactory>();
             services.RegisterPage("confirmDeleteSecretListEntry",
                 "ConfirmDeleteSecretListEntry",
-                data => new ConfirmDeleteSecretListEntryModel(data.Query.GetValue<string>(SecretListEntryModel.SecretNameKey)),
+                data => new ConfirmDeleteSecretListEntryModel(data.Query.GetValue<Guid>(SecretListEntryModel.SecretIdKey)),
                 false);
             services.AddScoped<IGabbroPageEntryFactory, SecretListEntryFactory>();
             services.AddScoped<IGabbroPageEntryFactory, SecretListFactory>();

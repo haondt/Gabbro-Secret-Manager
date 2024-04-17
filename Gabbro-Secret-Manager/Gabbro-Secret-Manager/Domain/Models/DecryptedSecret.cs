@@ -6,5 +6,6 @@
         public required string Name { get; set; }
         public required string Comments { get; set; }
         public required string Value { get; set; }
+        public required Guid Id { get; set; }
     }
 }

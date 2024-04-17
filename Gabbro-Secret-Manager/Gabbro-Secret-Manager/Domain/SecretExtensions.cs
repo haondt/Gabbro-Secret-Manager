@@ -6,6 +6,7 @@ namespace Gabbro_Secret_Manager.Domain
     {
         public static DecryptedSecret AsDecrypted(this Secret secret, string decryptedValue) => new()
         {
+            Id = secret.Id,
             Comments = secret.Comments,
             Name = secret.Name,
             Tags = secret.Tags,

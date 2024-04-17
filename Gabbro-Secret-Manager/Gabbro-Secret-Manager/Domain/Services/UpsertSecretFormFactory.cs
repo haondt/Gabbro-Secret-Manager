@@ -1,4 +1,5 @@
 ﻿using Gabbro_Secret_Manager.Core;
+using Gabbro_Secret_Manager.Core.Persistence;
 using Gabbro_Secret_Manager.Domain.Models;
 using Gabbro_Secret_Manager.Views.Shared;
 
@@ -20,21 +21,29 @@ namespace Gabbro_Secret_Manager.Domain.Services
             var encryptionKey = encryptionKeyService.GetEncryptionKey(sessionService.SessionToken!);
             var userKey = await sessionService.GetUserKeyAsync();
             var availableTags = await secretService.GetAvailableTags(encryptionKey, userKey);
-            var secretName = data.Query.GetValueOrDefault("key", "");
-            var currentKey = data.Query.GetValueOrDefault<string?>("currentKey", null);
-            var secretKey = Secret.GetStorageKey(userKey, secretName);
-            var (existsSecret, secret) = await secretService.TryGetSecret(encryptionKey, secretKey);
 
-            var model = new UpsertSecretFormModel
-            {
-                CurrentKey = currentKey,
-                TagSuggestions = availableTags,
-                Key = secretName,
-                Value = existsSecret ? secret!.Value : "",
-                Comments = existsSecret ? secret!.Comments : "",
-                Tags = existsSecret ? secret!.Tags : []
-            };
+            var secretId = data.Query.GetValueOrDefault<Guid?>("id", null);
+
+            var model = await CreateModel(availableTags, secretId, encryptionKey, userKey);
             return await Create(model, responseOptions);
+        }
+
+        private async Task<UpsertSecretFormModel> CreateModel(List<string> availableTags, Guid? secretId, byte[] encryptionKey, StorageKey<User> userKey)
+        {
+            var model = new UpsertSecretFormModel { TagSuggestions = availableTags };
+            if (!secretId.HasValue)
+                return model;
+
+            var (existsSecret, secret) = await secretService.TryGetSecret(encryptionKey, Secret.GetStorageKey(userKey, secretId.Value));
+            if (!existsSecret || secret == null) 
+                return model;
+
+            model.Name = secret.Name;
+            model.Id = secret.Id;
+            model.Value = secret.Value;
+            model.Comments = secret.Comments;
+            model.Tags = secret.Tags;
+            return model;
         }
 
         public Task<PageEntry> Create(IPageModel model, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)

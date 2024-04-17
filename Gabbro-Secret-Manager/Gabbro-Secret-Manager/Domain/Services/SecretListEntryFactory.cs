@@ -16,21 +16,16 @@ namespace Gabbro_Secret_Manager.Domain.Services
 
         public async Task<PageEntry> Create(IPageRegistry pageRegistry, IRequestData data, Func<HxHeaderBuilder, HxHeaderBuilder>? responseOptions = null)
         {
-            var secretName = data.Query.GetValue<string>(SecretListEntryModel.SecretNameKey);
+            var secretId = data.Query.GetValue<Guid>(SecretListEntryModel.SecretIdKey);
 
             var encryptionKey = encryptionKeyService.GetEncryptionKey(sessionService.SessionToken!);
 
             var userKey = await sessionService.GetUserKeyAsync();
-            var secretKey = Secret.GetStorageKey(userKey, secretName);
+            var secretKey = Secret.GetStorageKey(userKey, secretId);
             var secret = await secretService.GetSecret(encryptionKey!, secretKey);
             var model = new SecretListEntryModel
             {
-                Secret = new ViewSecret
-                {
-                    Name = secretName,
-                    Value = secret.Value,
-                    Tags = secret.Tags,
-                }
+                Secret = ViewSecret.FromSecret(secret)
             };
             return await Create(model, responseOptions);
         }

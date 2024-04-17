@@ -112,16 +112,20 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
                 return (T)data.Values[StorageKeyConvert.Serialize(key)]!;
             });
 
-        public Task<List<Secret>> GetSecrets(StorageKey<User> userKey) =>
+        public Task<List<Secret>> GetSecrets(StorageKey<User> userKey, string? secretName, IReadOnlyCollection<string>? tags = null) =>
             TryAcquireSemaphoreAnd(async () =>
             {
                 var data = await GetDataAsync();
-                return data.Values
+                var values = data.Values
                     .Select(kvp => kvp.Value)
                     .Where(v => v != null && v is Secret)
                     .Cast<Secret>()
-                    .Where(s => s.Owner.Equals(userKey))
-                    .ToList();
+                    .Where(s => s.Owner.Equals(userKey));
+                if (secretName != null)
+                    values = values.Where(s => s.Name == secretName);
+                if (tags != null && tags.Count > 0)
+                    values = values.Where(v => tags.All(t => v.Tags.Contains(t)));
+                return values.ToList();
             });
 
         public Task<Dictionary<StorageKey<ApiKey>, ApiKey>> GetApiKeys(StorageKey<User> userKey) =>

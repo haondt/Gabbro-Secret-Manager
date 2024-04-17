@@ -6,14 +6,17 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
 {
     public class MemoryGabbroStorage : MemoryStorage, IGabbroStorage
     {
-        public Task<List<Secret>> GetSecrets(StorageKey<User> userKey)
+        public Task<List<Secret>> GetSecrets(StorageKey<User> userKey,  string? secretName, IReadOnlyCollection<string>? tags = null)
         {
             var secrets = _storage
                 .Select(kvp => kvp.Value as Secret)
                 .Where(s => s != null && s.Owner.Equals(userKey))
-                .Cast<Secret>()
-                .ToList();
-            return Task.FromResult(secrets);
+                .Cast<Secret>();
+            if (secretName != null)
+                secrets = secrets.Where(s => s.Name == secretName);
+            if (tags != null && tags.Count > 0)
+                secrets = secrets.Where(s => tags.All(t => s.Tags.Contains(t)));
+            return Task.FromResult(secrets.ToList());
         }
 
         public Task<Dictionary<StorageKey<ApiKey>, ApiKey>> GetApiKeys(StorageKey<User> userKey)

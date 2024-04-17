@@ -5,8 +5,9 @@ namespace Gabbro_Secret_Manager.Domain.Models
 {
     public class Secret
     {
-        public static StorageKey<Secret> GetStorageKey(StorageKey<User> userKey, string name) => userKey.Extend<Secret>(name);
+        public static StorageKey<Secret> GetStorageKey(StorageKey<User> userKey, Guid id) => userKey.Extend<Secret>(id.ToString());
 
+        public required Guid Id { get; set; }
         public required HashSet<string> Tags { get; set; }
         public required string Name { get; set; }
         public required string EncryptedValue { get; set; }

@@ -87,13 +87,19 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
             return apiKeys.ToDictionary(d => d.Key.As<ApiKey>(), d => d.Value);
         }
 
-        public async Task<List<Secret>> GetSecrets(StorageKey<User> userKey)
+        public async Task<List<Secret>> GetSecrets(StorageKey<User> userKey, string? secretName, IReadOnlyCollection<string>? tags = null)
         {
             var collection = await GetCollection<Secret>();
-            return await collection.AsQueryable()
+            var query = collection.AsQueryable()
                 .Where(s => s.Value.Owner == userKey)
-                .Select(d => d.Value)
-                .ToListAsync();
+                .Select(d => d.Value);
+            if (secretName != null)
+                query = query.Where(s => s.Name ==  secretName);
+            if (tags != null && tags.Count > 0)
+                query = query.Where(s => tags.All(t => s.Tags.Contains(t)));
+                //foreach (var tag in tags)
+                //    query = query.Where(s => s.Tags.Contains(tag));
+            return await query.ToListAsync();
         }
 
         public async Task Set<T>(StorageKey<T> key, T value)

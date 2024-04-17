@@ -5,7 +5,7 @@ namespace Gabbro_Secret_Manager.Views.Shared
 {
     public class SecretListEntryModel : IPageModel
     {
-        public const string SecretNameKey = "name";
+        public const string SecretIdKey = "id";
         public required ViewSecret Secret { get; set; }
     }
 }

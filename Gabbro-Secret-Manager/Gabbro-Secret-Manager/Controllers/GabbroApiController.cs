@@ -14,22 +14,28 @@ namespace Gabbro_Secret_Manager.Controllers
     [Produces("application/json")]
     public class GabbroApiController(SecretService secretService, ApiSessionService apiSessionService) : ControllerBase
     {
-        [HttpGet("secrets/{secretName}")]
-        public async Task<IActionResult> GetSecret([FromRoute] string secretName)
+        [HttpGet("secret/{id}")]
+        public async Task<IActionResult> GetSecret([FromRoute] Guid id)
         {
             var (userKey, encryptionKey) = await apiSessionService.GetUserDataAsync();
-            var secretKey = Secret.GetStorageKey(userKey, secretName);
+            var secretKey = Secret.GetStorageKey(userKey, id);
             var (existsSecret, secret) = await secretService.TryGetSecret(encryptionKey, secretKey);
 
             if (!existsSecret)
                 return NotFound();
 
-            Response.StatusCode = 200;
-            return new JsonResult(new DumpSecret(secret!));
+            return new OkObjectResult(new DumpSecret(secret!));
         }
 
         [HttpGet("secrets")]
-        [Produces("application/json")]
+        public async Task<IActionResult> SearchSecrets([FromQuery] string? secretName, [FromQuery] List<string> tags)
+        {
+            var (userKey, encryptionKey) = await apiSessionService.GetUserDataAsync();
+            var secrets = await secretService.GetSecrets(encryptionKey, userKey, secretName, tags);
+            return new OkObjectResult(secrets.Select(s => new DumpSecret(s)).ToList());
+        }
+
+        [HttpGet("export-data")]
         public async Task<IActionResult> ExportDataFile()
         {
             var (userKey, encryptionKey) = await apiSessionService.GetUserDataAsync();

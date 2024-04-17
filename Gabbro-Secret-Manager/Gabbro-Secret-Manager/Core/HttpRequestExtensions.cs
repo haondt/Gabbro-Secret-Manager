@@ -12,11 +12,56 @@ namespace Gabbro_Secret_Manager.Core
                 () => request.Query,
                 () => request.Cookies);
         }
+        
+        private delegate bool ParseMethod<TResult>(string? value, out TResult result);
+        private static T ConvertValue<T>(string? value)
+        {
+            if (TryConvertValue<T>(value, out var convertedValue))
+                return convertedValue;
+            throw new InvalidCastException($"Cannot convert {value} to {typeof(T).FullName}");
+        }
+        private static bool TryConvertValue<T>(string? value, [NotNullWhen(true)] out T? convertedValue)
+        {
+            var targetType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+
+
+            (bool, T?) TryParse<TParser>(ParseMethod<TParser> parseMethod)
+            {
+                var parseResult = parseMethod(value, out var parsedValue);
+                T? returnValue = parseResult ? (T?)(object?)parsedValue : default;
+                return (parseResult, returnValue);
+            }
+
+            (bool, T?) FallBackTryParse()
+            {
+                if (targetType ==  typeof(Guid))
+                    return TryParse<Guid>(Guid.TryParse);
+                return (false, default);
+            }
+
+            (var result, convertedValue) = Type.GetTypeCode(targetType) switch
+            {
+                TypeCode.Boolean => TryParse<bool>(bool.TryParse),
+                TypeCode.String => (true, (T?)(object?)value),
+                TypeCode.Int16 => TryParse<int>(int.TryParse),
+                TypeCode.Int32 => TryParse<int>(int.TryParse),
+                TypeCode.Int64 => TryParse<int>(int.TryParse),
+                TypeCode.UInt16 => TryParse<int>(int.TryParse),
+                TypeCode.UInt32 => TryParse<int>(int.TryParse),
+                TypeCode.UInt64 => TryParse<int>(int.TryParse),
+                TypeCode.Double => TryParse<double>(double.TryParse),
+                TypeCode.Decimal => TryParse<decimal>(decimal.TryParse),
+                TypeCode.DateTime => TryParse<DateTime>(DateTime.TryParse),
+                _ => FallBackTryParse()
+            };
+
+            return result;
+        } 
 
         public static T GetValue<T>(this IEnumerable<KeyValuePair<string, StringValues>> values, string key)
         {
             var uncastedValue = values.Single(kvp => kvp.Key.Equals(key, StringComparison.OrdinalIgnoreCase)).Value.Last(s => !string.IsNullOrEmpty(s));
-            return (T)(Convert.ChangeType(uncastedValue, typeof(T)) ?? new InvalidOperationException(typeof(T).FullName));
+            return ConvertValue<T>(uncastedValue!);
         }
 
         public static T GetValueOrDefault<T>(this IEnumerable<KeyValuePair<string, StringValues>> values, string key, T defaultValue)
@@ -38,18 +83,7 @@ namespace Gabbro_Secret_Manager.Core
             if (stringValue == null)
                 return false;
 
-            try
-            {
-                var result = Convert.ChangeType(stringValue, typeof(T));
-                if (result == null || result is not T tResult)
-                    return false;
-                castedValue = tResult;
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return TryConvertValue<T>(stringValue, out castedValue);
         }
 
         public static IEnumerable<T> GetValues<T>(this IEnumerable<KeyValuePair<string, StringValues>> values, string key)
@@ -63,21 +97,7 @@ namespace Gabbro_Secret_Manager.Core
                 return [];
 
             return stringValues
-                .Select(stringValue =>
-                {
-                    try
-                    {
-                        var result = Convert.ChangeType(stringValue, typeof(T));
-                        if (result == null || result is not T tResult)
-                            return (false, default(T?));
-                        return (true, tResult);
-                    }
-                    catch
-                    {
-                        return (false, default(T?));
-                    }
-
-                })
+                .Select(stringValue => (TryConvertValue<T>(stringValue, out var castedValue), castedValue))
                 .Where(t => t.Item1 && t.Item2 != null)
                 .Select(t => t.Item2)
                 .Cast<T>();

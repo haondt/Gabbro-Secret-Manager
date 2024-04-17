@@ -47,24 +47,24 @@ namespace Gabbro_Secret_Manager.Controllers
         }
 
         [HttpDelete("delete-secret")]
-        public async Task<IActionResult> DeleteSecret([FromForm] string name)
+        public async Task<IActionResult> DeleteSecret([FromForm] Guid id)
         {
 
             if (await helper.VerifySession(this) is (false, var invalidSessionResponse))
                 return invalidSessionResponse!;
 
             var userKey = await sessionService.GetUserKeyAsync();
-            await secretService.DeleteSecret(userKey, name);
+            await secretService.DeleteSecret(userKey, id);
             return Ok();
         }
 
         [HttpPost("upsert-secret")]
         public async Task<IActionResult> UpsertSecret(
-            [FromForm] string key,
+            [FromForm] Guid? id,
+            [FromForm] string name,
             [FromForm] string? value,
             [FromForm] string? comments,
-            [FromForm] List<string> tags,
-            [FromForm] string? currentKey)
+            [FromForm] List<string> tags)
         {
             comments ??= "";
             value ??= "";
@@ -79,8 +79,8 @@ namespace Gabbro_Secret_Manager.Controllers
                 var tagSuggestions = await secretService.GetAvailableTags(encryptionKey!, userKey);
                 return () => new UpsertSecretFormModel
                 {
-                    CurrentKey = currentKey,
-                    Key = key,
+                    Name = name,
+                    Id = id,
                     Value = value,
                     TagSuggestions = tagSuggestions,
                     Tags = [.. tags],
@@ -89,18 +89,13 @@ namespace Gabbro_Secret_Manager.Controllers
                 };
             };
 
-            if (string.IsNullOrWhiteSpace(key))
+            if (string.IsNullOrWhiteSpace(name))
                 return await helper.GetView(this, "upsertSecretForm", await upsertSecretFormModelGeneratorGenerator("Secret name cannot be empty"));
 
-            if (!Regex.IsMatch(key, @"^[a-zA-z0-9_-]+$"))
+            if (!Regex.IsMatch(name, @"^[a-zA-z0-9_-]+$"))
                 return await helper.GetView(this, "upsertSecretForm", await upsertSecretFormModelGeneratorGenerator("Secret name may only contain the characters [a-zA-Z0-9_-]+"));
 
-            if (((currentKey != null && currentKey != key) || currentKey == null) && await secretService.ContainsSecret(userKey, key))
-                return await helper.GetView(this, "upsertSecretForm", await upsertSecretFormModelGeneratorGenerator("Secret name already in use"));
-
-            await secretService.UpsertSecret(encryptionKey, userKey, key, value, comments, [.. tags]);
-            if (!string.IsNullOrWhiteSpace(currentKey) && currentKey != key)
-                await secretService.DeleteSecret(userKey, currentKey);
+            await secretService.UpsertSecret(encryptionKey, userKey, name, value, comments, [.. tags], id);
 
             return await helper.GetView(this, _indexSettings.HomePage);
         }

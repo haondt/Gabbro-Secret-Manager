@@ -1,0 +1,32 @@
+version: '3.9'
+services:
+  db:
+    image: mongo
+    networks:
+      - gsm-network
+    volumes:
+      - mongo-data:/data/db
+    container_name: db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: gsm
+  gsm:
+    build:
+      context: ./Gabbro-Secret-Manager/
+      dockerfile: ./Gabbro-Secret-Manager/Dockerfile
+    container_name: gabbro-secret-manager
+    networks:
+      - gsm-network
+    ports:
+      - 8080:8080
+    environment:
+      JweSettings__EncryptionKey: "QpLMMPrsuRe0vuwTGtQQugfMEeMEvo++mGYACBu4rR4="
+      JweSettings__SigningKey: "HuSdq2H1QENlVkk/i8qxJ5EnAvFImb8oHpQGK/4i21Y="
+      MongoDbSettings__ConnectionString: "mongodb://root:example@db:27017"
+      MongoDbSettings__DatabaseName: "gsm"
+
+networks:
+  gsm-network:
+volumes:
+  mongo-data:

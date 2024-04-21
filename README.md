@@ -4,13 +4,19 @@ A super simple secret manager for my home server deployment automation.
 
 # Deployment
 
+Can be deployed with docker 
+
+```bash
+docker pull ghcr.io/haondt/gabbro-secret-manager:latest
+```
+
 The following items must be configured:
 - `JweSettings.EncryptionKey`: 32-byte encryption key for encrypting api tokens
 - `JweSettings.SigningKey`: (optional, default can be used as well) 32-byte signing key for signing api tokens
 - `MongoDbSettings.ConnectionString`: connection string for mongo db
 - `MongoDbSettings.DatabaseName`: mongodb database to use
 
-See `docker-compose.yml` for an example setup.
+See [`docker-compose.yml`](./docker-compose.yml) for an example setup.
 
 # Features
 

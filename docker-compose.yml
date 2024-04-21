@@ -12,9 +12,11 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: example
       MONGO_INITDB_DATABASE: gsm
   gsm:
-    build:
-      context: ./Gabbro-Secret-Manager/
-      dockerfile: ./Gabbro-Secret-Manager/Dockerfile
+    image: ghcr.io/haondt/gabbro-secret-manager:latest
+    # build from source:
+    # build:
+    #   context: ./Gabbro-Secret-Manager/
+    #   dockerfile: ./Gabbro-Secret-Manager/Dockerfile
     container_name: gabbro-secret-manager
     networks:
       - gsm-network

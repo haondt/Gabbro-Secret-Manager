@@ -7,6 +7,10 @@ on:
 jobs:
   docker-build-and-push:
     uses: haondt/github-workflows/.github/workflows/ghcr-build-and-push.yml@main
+    permissions:
+        contents: read
+        packages: write
+        id-token: write
     secrets: inherit
     with:
       image: Gabbro-Secret-Manager

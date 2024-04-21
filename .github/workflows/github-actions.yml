@@ -6,11 +6,10 @@ on:
 
 jobs:
   docker-build-and-push:
-    uses: haondt/github-workflows/.github/workflows/docker-build-and-push.yml@main
+    uses: haondt/github-workflows/.github/workflows/ghcr-build-and-push.yml@main
     secrets: inherit
     with:
-      REGISTRY: ghcr
-      IMAGE_NAME: Gabbro-Secret-Manager
-      REPOSITORY: haondt
-      BUILD_CONTEXT: Gabbro-Secret-Manager
-      DOCKERFILE: Gabbro-Secret-Manager/Gabbro-Secret-Manager/Dockerfile
+      image: Gabbro-Secret-Manager
+      repository: haondt
+      context: Gabbro-Secret-Manager
+      file: Gabbro-Secret-Manager/Gabbro-Secret-Manager/Dockerfile

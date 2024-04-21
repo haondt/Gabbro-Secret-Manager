@@ -47,7 +47,8 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: Gabbro-Secret-Manager
+          file: Gabbro-Secret-Manager/Gabbro-Secret-Manager/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

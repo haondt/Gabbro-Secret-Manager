@@ -7,7 +7,7 @@ A super simple secret manager for my home server deployment automation.
 Can be deployed with docker 
 
 ```bash
-docker pull ghcr.io/haondt/gabbro-secret-manager:latest
+docker pull registry.gitlab.com/haondt/cicd/registry/gabbro-secret-manager:latest
 ```
 
 The following items must be configured:

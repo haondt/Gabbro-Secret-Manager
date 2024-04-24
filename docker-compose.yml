@@ -13,7 +13,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: example
       MONGO_INITDB_DATABASE: gsm
   gsm:
-    image: ghcr.io/haondt/gabbro-secret-manager:latest
+    image: registry.gitlab.com/haondt/cicd/registry/gabbro-secret-manager:latest
     # build from source:
     # build:
     #   context: ./Gabbro-Secret-Manager/

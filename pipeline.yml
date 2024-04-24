@@ -1,0 +1,14 @@
+tasks:
+  - type: docker-build
+    image: gabbro-secret-manager
+    auto_push_on:
+      - source: push
+        has_tag: true
+        tag_source: tag
+      - source: push
+        has_tag: true
+        tag_source: latest
+    context: Gabbro-Secret-Manager
+    file: Gabbro-Secret-Manager/Gabbro-Secret-Manager/Dockerfile
+    registries:
+      - gitlab

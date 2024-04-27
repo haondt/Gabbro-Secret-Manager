@@ -48,10 +48,11 @@ Details:
 Endpoints:
 - `GET` - `{server-url}/api/secrets` - returns all secrets
   - also supports query items
-  - `name` - filter the name of the secret
-  - `tags` - filter for secrets that contain all given tags
+      - `name` - filter the name of the secret
+      - `tags` - filter for secrets that contain all given tags
+  - e.g. `{server-url}/api/secrets?name=Foo&tags=bar&tags=baz`
 - `GET` - `{server-url}/api/secret/{SECRET_ID}` - returns a particular secret
-- `GET` - `export-data` - gets all user data
+- `GET` - `{server-url}/api/export-data` - gets all user data
 
 ## Export user data
 

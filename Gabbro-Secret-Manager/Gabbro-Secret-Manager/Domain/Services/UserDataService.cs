@@ -14,7 +14,6 @@ namespace Gabbro_Secret_Manager.Domain.Services
             var userDataKey = UserData.GetStorageKey(userKey);
             var userData = new UserData
             {
-                Owner = userKey,
                 EncryptionKeySettings = new EncryptionKeySettings
                 {
                     Iterations = encryptionKeyOptions.Value.DefaultEncryptionKeyIterations,

@@ -65,7 +65,6 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
                 {
                     if (!_setup)
                     {
-
                         await ExecuteInternal(async conn =>
                         {
                             using var cmd = new NpgsqlCommand(@"
@@ -92,18 +91,27 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
                             ", conn);
                             await secretsCmd.ExecuteNonQueryAsync();
 
-                using var apiKeysCmd = new NpgsqlCommand(@"
-                    CREATE TABLE IF NOT EXISTS ApiKeys (
-                        id SERIAL PRIMARY KEY,
-                        storageKey TEXT UNIQUE NOT NULL,
-                        gabbroId UUID NOT NULL,
-                        name TEXT NOT NULL,
-                        created timestamp NOT NULL,
-                        owner TEXT REFERENCES Entities(storageKey)
-                    );
-                ", conn);
-                await apiKeysCmd.ExecuteNonQueryAsync();
-            });
+                            using var apiKeysCmd = new NpgsqlCommand(@"
+                                CREATE TABLE IF NOT EXISTS ApiKeys (
+                                    id SERIAL PRIMARY KEY,
+                                    storageKey TEXT UNIQUE NOT NULL,
+                                    gabbroId UUID NOT NULL,
+                                    name TEXT NOT NULL,
+                                    created timestamp NOT NULL,
+                                    owner TEXT REFERENCES Entities(storageKey)
+                                );
+                            ", conn);
+                            await apiKeysCmd.ExecuteNonQueryAsync();
+                        });
+
+                        _setup = true;
+                    }
+                }
+                finally
+                {
+                    _locker.Release();
+                }
+            }
         }
 
         private T DeserializeObject<T>(StorageKey<T> key, object? obj) => DeserializeObject<T>((StorageKey)key, obj);

@@ -124,7 +124,7 @@ namespace Gabbro_Secret_Manager.Controllers
 
             var userKey = await sessionService.GetUserKeyAsync();
             var secrets = await secretService.GetSecrets(encryptionKey, userKey);
-            var result = new UserDataDump(secrets);
+            var result = UserDataDump.Create(secrets);
             return new OkObjectResult(result);
         }
 

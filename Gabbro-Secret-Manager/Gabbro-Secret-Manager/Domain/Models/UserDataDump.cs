@@ -4,44 +4,41 @@ namespace Gabbro_Secret_Manager.Domain.Models
 {
     public class UserDataDump
     {
-        public List<DumpSecret> Secrets { get; }
+        public List<DumpSecret> Secrets { get; set; }
 
-        public UserDataDump(List<DumpSecret> dumpSecrets)
+        public static UserDataDump Create(List<DumpSecret> dumpSecrets)
         {
-            Secrets = dumpSecrets;
+            return new UserDataDump
+            {
+                Secrets = dumpSecrets
+            };
         }
 
-        public UserDataDump(IEnumerable<DecryptedSecret> secrets)
+        public static UserDataDump Create(IEnumerable<DecryptedSecret> secrets)
         {
-            Secrets = secrets.Select(s => new DumpSecret(s)).ToList();
+            return new UserDataDump
+            {
+                Secrets = secrets.Select(DumpSecret.Create).ToList()
+            };
         }
     }
 
     public class DumpSecret
     {
-        public string Key { get; }
-        public string Value { get; }
-        public string Comments { get; }
-        public HashSet<string> Tags { get; }
+        public required string Key { get; set; }
+        public required string Value { get; set; }
+        public required string Comments { get; set; }
+        public required HashSet<string> Tags { get; set; }
 
-        public DumpSecret(
-            string key,
-            string value,
-            string comments,
-            HashSet<string> tags)
+        public static DumpSecret Create(DecryptedSecret secret)
         {
-            Key = key;
-            Value = value;
-            Comments = comments;
-            Tags = tags;
-        }
-
-        public DumpSecret(DecryptedSecret secret)
-        {
-            Key = secret.Name;
-            Value = secret.Value;
-            Comments = secret.Comments;
-            Tags = secret.Tags;
+            return new DumpSecret
+            {
+                Key = secret.Name,
+                Value = secret.Value,
+                Comments = secret.Comments,
+                Tags = secret.Tags
+            };
         }
     }
 }

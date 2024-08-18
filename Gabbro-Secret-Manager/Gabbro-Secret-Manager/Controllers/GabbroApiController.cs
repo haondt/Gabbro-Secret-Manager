@@ -3,6 +3,7 @@ using Gabbro_Secret_Manager.Domain.Filters;
 using Gabbro_Secret_Manager.Domain.Models;
 using Gabbro_Secret_Manager.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Gabbro_Secret_Manager.Controllers
 {
@@ -24,7 +25,7 @@ namespace Gabbro_Secret_Manager.Controllers
             if (!existsSecret)
                 return NotFound();
 
-            return new OkObjectResult(new DumpSecret(secret!));
+            return new OkObjectResult(DumpSecret.Create(secret!));
         }
 
         [HttpGet("secrets")]
@@ -32,7 +33,7 @@ namespace Gabbro_Secret_Manager.Controllers
         {
             var (userKey, encryptionKey) = await apiSessionService.GetUserDataAsync();
             var secrets = await secretService.GetSecrets(encryptionKey, userKey, name, tags);
-            return new OkObjectResult(secrets.Select(s => new DumpSecret(s)).ToList());
+            return new OkObjectResult(secrets.Select(s => DumpSecret.Create(s)).ToList());
         }
 
         [HttpGet("export-data")]
@@ -40,7 +41,45 @@ namespace Gabbro_Secret_Manager.Controllers
         {
             var (userKey, encryptionKey) = await apiSessionService.GetUserDataAsync();
             var secrets = await secretService.GetSecrets(encryptionKey, userKey);
-            var result = new UserDataDump(secrets);
+            var result = UserDataDump.Create(secrets);
+            return new OkObjectResult(result);
+        }
+
+        [HttpPost("import-data")]
+        public async Task<IActionResult> ImportDataFile([FromForm] IFormFile file)
+        {
+            var (userKey, encryptionKey) = await apiSessionService.GetUserDataAsync();
+
+            if (file.ContentType != "application/json")
+                return new BadRequestObjectResult($"Expected an 'application/json' content type, but received '{file.ContentType}'");
+
+            using var stream = file.OpenReadStream();
+            using var reader = new StreamReader(stream);
+            var contents = await reader.ReadToEndAsync();
+            var secrets = JsonConvert.DeserializeObject<UserDataDump>(contents);
+
+            if (secrets == null)
+                return new BadRequestResult();
+
+
+            var result = new
+            {
+                success = new List<string>(),
+                failed = new List<string>(),
+            };
+            foreach (var secret in secrets.Secrets)
+            {
+                try
+                {
+                    await secretService.UpsertSecret(encryptionKey, userKey, secret.Key, secret.Value, secret.Comments, secret.Tags);
+                    result.success.Add(secret.Key);
+                }
+                catch
+                {
+                    result.failed.Add(secret.Key);
+                }
+            }
+
             return new OkObjectResult(result);
         }
     }

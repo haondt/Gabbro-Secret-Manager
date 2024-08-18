@@ -211,7 +211,7 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
 
             if (tags != null && tags.Count > 0)
             {
-                sql.Append($"AND tags && @tags");
+                sql.Append($" AND tags && @tags");
                 parameters.Add(new NpgsqlParameter("tags", tags.ToArray()));
             }
 

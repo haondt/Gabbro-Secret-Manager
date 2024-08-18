@@ -128,7 +128,12 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
 
         public Task<bool> ContainsKey(StorageKey key)
         {
-            var table = key.Type == typeof(Secret) ? "Secrets" : "Entities";
+            var table = "Entities";
+            if (key.Type == typeof(Secret))
+                table = "Secrets";
+            else if (key.Type == typeof(ApiKey))
+                table = "ApiKeys";
+
             return ExecuteAsync(async conn =>
             {
                 using var cmd = new NpgsqlCommand($"SELECT EXISTS (SELECT 1 FROM {table} WHERE storageKey = @storageKey)", conn);
@@ -141,10 +146,15 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
 
         public Task Delete(StorageKey key)
         {
-            var table = key.Type == typeof(Secret) ? "Secrets" : "Entities";
+            var table = "Entities";
+            if (key.Type == typeof(Secret))
+                table = "Secrets";
+            else if (key.Type == typeof(ApiKey))
+                table = "ApiKeys";
+
             return ExecuteAsync(async conn =>
             {
-                using var cmd = new NpgsqlCommand($"DELETE FROM {table} WHERE storageKey = @storageKey)", conn);
+                using var cmd = new NpgsqlCommand($"DELETE FROM {table} WHERE storageKey = @storageKey", conn);
                 cmd.Parameters.AddWithValue("storageKey", StorageKeyConvert.Serialize(key));
 
                 await cmd.ExecuteNonQueryAsync();
@@ -234,9 +244,15 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
                 {
                     using var cmd = new NpgsqlCommand(@"
                         INSERT INTO Secrets (gabbroId, tags, name, encryptedValue, owner, initializationVector, comments, storageKey) 
-                        VALUES (@gabbroId, @tags, @name, @encryptedValue, @owner, @initializationVector, @comments @storageKey) 
+                        VALUES (@gabbroId, @tags, @name, @encryptedValue, @owner, @initializationVector, @comments, @storageKey) 
                         ON CONFLICT (storageKey) DO UPDATE
-                        SET data = EXCLUDED.Data, owner = EXCLUDED.owner
+                        SET gabbroId = EXCLUDED.gabbroId, 
+                            tags = EXCLUDED.tags, 
+                            name = EXCLUDED.name, 
+                            encryptedValue = EXCLUDED.encryptedValue, 
+                            owner = EXCLUDED.owner, 
+                            initializationVector = EXCLUDED.initializationVector, 
+                            comments = EXCLUDED.comments
                     ", conn);
 
                     cmd.Parameters.AddWithValue("gabbroId", secretValue.Id);
@@ -255,14 +271,18 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
                 return ExecuteAsync(async conn =>
                 {
                     using var cmd = new NpgsqlCommand(@"
-                        INSERT INTO Secrets (gabbroId, name, created, owner, storageKey) 
-                        VALUES (@gabbroId, @name, @creatd, @owner, @storageKey) 
+                        INSERT INTO ApiKeys (gabbroId, name, created, owner, storageKey) 
+                        VALUES (@gabbroId, @name, @created, @owner, @storageKey) 
                         ON CONFLICT (storageKey) DO UPDATE
-                        SET data = EXCLUDED.Data, owner = EXCLUDED.owner
+                        SET gabbroId = EXCLUDED.gabbroId, 
+                            name = EXCLUDED.name, 
+                            created = EXCLUDED.created, 
+                            owner = EXCLUDED.owner
                     ", conn);
 
                     cmd.Parameters.AddWithValue("gabbroId", apiKeyvalue.Id);
                     cmd.Parameters.AddWithValue("name", apiKeyvalue.Name);
+                    cmd.Parameters.AddWithValue("created", apiKeyvalue.Created);
                     cmd.Parameters.AddWithValue("owner", StorageKeyConvert.Serialize(apiKeyvalue.Owner));
                     cmd.Parameters.AddWithValue("storageKey", StorageKeyConvert.Serialize(key));
 
@@ -271,15 +291,17 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
 
             return ExecuteAsync(async conn =>
             {
-                    using var cmd = new NpgsqlCommand(@"
-                        INSERT INTO Entities (storageKey, type, data, owner)
-                        VALUES (@gabbroId, @tags, @name, @encryptedValue, @owner, @initializationVector, @comments @storageKey) 
-                        ON CONFLICT (storageKey) DO UPDATE
-                        SET data = EXCLUDED.Data, owner = EXCLUDED.owner
-                    ", conn);
+                using var cmd = new NpgsqlCommand(@"
+                    INSERT INTO Entities (storageKey, data)
+                    VALUES (@storageKey, @data) 
+                    ON CONFLICT (storageKey) DO UPDATE
+                    SET data = EXCLUDED.Data
+                ", conn);
 
-                var result = await cmd.ExecuteScalarAsync();
-                return DeserializeObject(key, result);
+                cmd.Parameters.AddWithValue("data", JsonConvert.SerializeObject(value));
+                cmd.Parameters.AddWithValue("storageKey", StorageKeyConvert.Serialize(key));
+
+                await cmd.ExecuteNonQueryAsync();
             });
         }
 

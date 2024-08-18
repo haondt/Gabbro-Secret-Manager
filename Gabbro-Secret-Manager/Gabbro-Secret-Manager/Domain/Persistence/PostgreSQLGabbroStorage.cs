@@ -65,45 +65,54 @@ namespace Gabbro_Secret_Manager.Domain.Persistence
                 {
                     if (!_setup)
                     {
+                        await SetupDatabaseAsync();
+                        _setup = true;
+                    }
+                }
+                finally
+                {
+                    _locker.Release();
+                }
+            }
 
-                        await ExecuteInternal(async conn =>
-                        {
-                            using var cmd = new NpgsqlCommand(@"
-                                CREATE TABLE IF NOT EXISTS Entities (
-                                    id SERIAL PRIMARY KEY,
-                                    storageKey TEXT UNIQUE NOT NULL,
-                                    data TEXT NOT NULL
-                                );
-                            ", conn);
-                            await cmd.ExecuteNonQueryAsync();
+            await ExecuteInternal(async conn =>
+            {
+                using var cmd = new NpgsqlCommand(@"
+                    CREATE TABLE IF NOT EXISTS Entities (
+                        id SERIAL PRIMARY KEY,
+                        storageKey TEXT UNIQUE NOT NULL,
+                        data TEXT NOT NULL
+                    );
+                ", conn);
+                await cmd.ExecuteNonQueryAsync();
 
-                            using var secretsCmd = new NpgsqlCommand(@"
-                                CREATE TABLE IF NOT EXISTS Secrets (
-                                    id SERIAL PRIMARY KEY,
-                                    storageKey TEXT UNIQUE NOT NULL,
-                                    gabbroId UUID NOT NULL,
-                                    tags TEXT[],
-                                    name TEXT NOT NULL,
-                                    encryptedValue TEXT NOT NULL,
-                                    owner TEXT REFERENCES Entities(storageKey),
-                                    initializationVector TEXT NOT NULL,
-                                    comments TEXT NOT NULL
-                                );
-                            ", conn);
-                            await secretsCmd.ExecuteNonQueryAsync();
+                using var secretsCmd = new NpgsqlCommand(@"
+                    CREATE TABLE IF NOT EXISTS Secrets (
+                        id SERIAL PRIMARY KEY,
+                        storageKey TEXT UNIQUE NOT NULL,
+                        gabbroId UUID NOT NULL,
+                        tags TEXT[],
+                        name TEXT NOT NULL,
+                        encryptedValue TEXT NOT NULL,
+                        owner TEXT REFERENCES Entities(storageKey),
+                        initializationVector TEXT NOT NULL,
+                        comments TEXT NOT NULL
+                    );
+                ", conn);
+                await secretsCmd.ExecuteNonQueryAsync();
 
-                            using var apiKeysCmd = new NpgsqlCommand(@"
-                                CREATE TABLE IF NOT EXISTS ApiKeys (
-                                    id SERIAL PRIMARY KEY,
-                                    storageKey TEXT UNIQUE NOT NULL,
-                                    gabbroId UUID NOT NULL,
-                                    name TEXT NOT NULL,
-                                    created timestamp NOT NULL,
-                                    owner TEXT REFERENCES Entities(storageKey)
-                                );
-                            ", conn);
-                            await apiKeysCmd.ExecuteNonQueryAsync();
-                        });
+                using var apiKeysCmd = new NpgsqlCommand(@"
+                    CREATE TABLE IF NOT EXISTS ApiKeys (
+                        id SERIAL PRIMARY KEY,
+                        storageKey TEXT UNIQUE NOT NULL,
+                        gabbroId UUID NOT NULL,
+                        name TEXT NOT NULL,
+                        created timestamp NOT NULL,
+                        owner TEXT REFERENCES Entities(storageKey)
+                    );
+                ", conn);
+                await apiKeysCmd.ExecuteNonQueryAsync();
+            });
 
                         _setup = true;
                     }

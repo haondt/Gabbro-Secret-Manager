@@ -2,22 +2,24 @@ version: '3.9'
 
 services:
   db:
-    image: mongo
+    image: postgres
     networks:
       - gsm-network
     volumes:
-      - mongo-data:/data/db
+      - postgres-data:/var/lib/postgresql/data
     container_name: db
+    ports:
+      - 5432:5432
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-      MONGO_INITDB_DATABASE: gsm
+      POSTGRES_PASSWORD: IgRbId5kODidpXF9HimuWNWJCsUKIkcMM32yiFbMyqE=
+      POSTGRES_USER: gsm 
+    shm_size: 128mb
   gsm:
-    image: registry.gitlab.com/haondt/cicd/registry/gabbro-secret-manager:latest
+    # image: registry.gitlab.com/haondt/cicd/registry/gabbro-secret-manager:latest
     # build from source:
-    # build:
-    #   context: ./Gabbro-Secret-Manager/
-    #   dockerfile: ./Gabbro-Secret-Manager/Dockerfile
+    build:
+      context: ./Gabbro-Secret-Manager/
+      dockerfile: ./Gabbro-Secret-Manager/Dockerfile
     container_name: gabbro-secret-manager
     networks:
       - gsm-network
@@ -26,10 +28,10 @@ services:
     environment:
       JweSettings__EncryptionKey: "QpLMMPrsuRe0vuwTGtQQugfMEeMEvo++mGYACBu4rR4="
       JweSettings__SigningKey: "HuSdq2H1QENlVkk/i8qxJ5EnAvFImb8oHpQGK/4i21Y="
-      MongoDbSettings__ConnectionString: "mongodb://root:example@db:27017"
-      MongoDbSettings__DatabaseName: "gsm"
+      PersistenceSettings__Driver: postgres
+      PostgreSQLSettings__ConnectionString: Host=db;Username=gsm;Password=IgRbId5kODidpXF9HimuWNWJCsUKIkcMM32yiFbMyqE=;Database=gsm
 
 networks:
   gsm-network:
 volumes:
-  mongo-data:
+  postgres-data:

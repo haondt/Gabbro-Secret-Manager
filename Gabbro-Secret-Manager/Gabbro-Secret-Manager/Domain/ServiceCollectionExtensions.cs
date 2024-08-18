@@ -1,4 +1,5 @@
 ﻿using Gabbro_Secret_Manager.Core;
+using Gabbro_Secret_Manager.Core.Extensions;
 using Gabbro_Secret_Manager.Core.Persistence;
 using Gabbro_Secret_Manager.Domain.Filters;
 using Gabbro_Secret_Manager.Domain.Models;
@@ -20,8 +21,25 @@ namespace Gabbro_Secret_Manager.Domain
             // storage
             services.AddSingleton<IGabbroStorageService, GabbroStorageService>();
             services.AddSingleton<IStorage>(sp => sp.GetRequiredService<IGabbroStorage>());
-            services.AddSingleton<IGabbroStorage, FileGabbroStorage>();
             services.AddSingleton<IStorageService>(sp => sp.GetRequiredService<IGabbroStorageService>());
+
+
+            var persistenceSettings = configuration.GetSection<Domain.Persistence.PersistenceSettings>();
+            switch (persistenceSettings.Driver)
+            {
+                case GabbroPersistenceDrivers.Memory:
+                    services.AddSingleton<IGabbroStorage, MemoryGabbroStorage>();
+                    break;
+                case GabbroPersistenceDrivers.File:
+                    services.AddSingleton<IGabbroStorage, FileGabbroStorage>();
+                    break;
+                case GabbroPersistenceDrivers.MongoDb:
+                    services.AddMongoDb(configuration);
+                    break;
+                case GabbroPersistenceDrivers.Postgres:
+                    services.AddPostgreSQL(configuration);
+                    break;
+            }
 
             // services
             services.Configure<EncryptionKeyServiceSettings>(configuration.GetSection(nameof(EncryptionKeyServiceSettings)));
@@ -75,6 +93,13 @@ namespace Gabbro_Secret_Manager.Domain
             BsonSerializer.RegisterGenericSerializerDefinition(typeof(StorageKey<>), typeof(StorageKeyBsonConverter<>));
             BsonSerializer.RegisterSerializer(typeof(StorageKey), new StorageKeyBsonConverter());
 
+            return services;
+        }
+
+        public static IServiceCollection AddPostgreSQL(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<PostgreSQLSettings>(configuration.GetSection(nameof(PostgreSQLSettings)));
+            services.AddSingleton<IGabbroStorage, PostgreSQLGabbroStorage>();
             return services;
         }
 

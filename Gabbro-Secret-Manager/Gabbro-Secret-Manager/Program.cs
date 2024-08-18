@@ -20,8 +20,7 @@ builder.Services.AddCors(o => o.AddPolicy(CORS_POLICY, p =>
 builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddCoreServices(builder.Configuration)
-    .AddGabbroServices(builder.Configuration)
-    .AddMongoDb(builder.Configuration);
+    .AddGabbroServices(builder.Configuration);
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {

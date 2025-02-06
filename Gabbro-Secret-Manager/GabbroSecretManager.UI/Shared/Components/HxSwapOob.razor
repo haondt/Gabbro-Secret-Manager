@@ -1,0 +1,16 @@
+@code{
+    [Parameter, EditorRequired]
+    public required string Target { get; set; }
+    [Parameter]
+    public string Strategy { get; set; } = "innerHTML";
+
+    [Parameter, EditorRequired]
+    public required IComponent Content { get; set; }
+
+
+
+}
+<div 
+    hx-swap-oob="@Strategy:@Target">
+    <Haondt.Web.Components.ObjectComponent Component="Content" />
+</div>

@@ -1,0 +1,90 @@
+﻿@using GabbroSecretManager.Core.Models
+@using GabbroSecretManager.Domain.Authentication.Services
+@using GabbroSecretManager.Domain.Secrets.Services
+@using Haondt.Web.Components
+@using Haondt.Web.Core.Extensions
+@attribute [RenderPage]
+
+<div _="on load send OnNavigate(value:'Home') to #navbar then remove me"></div>
+
+<div class="p-3 is-flex is-justify-content-center">
+    <div class="card is-flex-grow-1" style="max-width:1200px;">
+        <header class="card-header">
+            <div class="p-3 is-flex-grow-1">
+                <form
+                    hx-get="/secrets/search"
+                    hx-swap="none">
+                    <div class="field is-grouped">
+
+                        <div class="control is-expanded">
+
+                        <p class="control has-icons-left">
+                            <input
+                                _="
+                                    on input debounced at 200ms
+                                        send submit to the closest <form />
+                                "
+                                class="input is-fullwidth is-rounded" name="search" placeholder="search" type="search"/>
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-search"></i>
+                            </span>
+                        </p> 
+                        </div>
+                        <div class="control buttons">
+                            <div class="dropdown is-right is-active">
+                                <div class="dropdown-trigger">
+                                    <button class="button is-info is-dark">
+                                        <span class="icon is-small">
+                                            <i class="fas fa-tag"/>
+                                        </span>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <div class="dropdown-content">
+                                            <div class="dropdown-item">
+                                                <input 
+                                                    _="on input
+                                                        show .tag in the next .tags when its textContent.toUpperCase() contains (my value).toUpperCase()
+                                                    "
+                                                    class="input is-fullwidth" 
+                                                    placeholder="search tags" 
+                                                    type="search"/>
+                                                    <hr class="mt-2 mb-3"/>
+
+                                                <TagsFilter Tags="[]" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                hx-get="/secrets/create"
+                                hx-swap="none"
+                                class="button is-primary is-dark">New secret</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </header>
+        <div class="card-content">
+
+
+        <table class="table is-fullwidth">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                    <th>Tags</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <form 
+                hx-trigger="load, encryptionKeyRefreshed from:body"
+                hx-swap="outerHTML" 
+                hx-get="/secrets"
+                hx-vals='{"swap-tags": "true"}'
+                hx-target="this">
+            </form>
+        </table>
+        </div>
+    </div>
+</div>

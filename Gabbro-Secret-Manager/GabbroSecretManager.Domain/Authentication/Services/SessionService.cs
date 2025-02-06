@@ -31,5 +31,7 @@ namespace GabbroSecretManager.Domain.Authentication.Services
             var userData = surrogate.ToUserData();
             return userData.NormalizedUsername;
         }
+
+
     }
 }

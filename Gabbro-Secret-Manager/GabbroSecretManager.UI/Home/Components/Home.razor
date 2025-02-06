@@ -12,6 +12,7 @@
         <header class="card-header">
             <div class="p-3 is-flex-grow-1">
                 <form
+                    hx-trigger="submit, refreshSearchResults from:body"
                     hx-get="/secrets/search"
                     hx-swap="none">
                     <div class="field is-grouped">
@@ -31,9 +32,17 @@
                         </p> 
                         </div>
                         <div class="control buttons">
-                            <div class="dropdown is-right is-active">
+                            <div class="dropdown is-right">
                                 <div class="dropdown-trigger">
-                                    <button class="button is-info is-dark">
+                                    <button class="button is-info is-dark"
+                                        _="
+                                            set :dd to the closest .dropdown
+                                            on click
+                                                toggle .is-active on :dd then halt the event
+                                            on click from elsewhere
+                                                if the event's target is not in :dd
+                                                    remove .is-active from :dd
+                                        ">
                                         <span class="icon is-small">
                                             <i class="fas fa-tag"/>
                                         </span>
@@ -66,25 +75,25 @@
             </div>
         </header>
         <div class="card-content">
-
-
-        <table class="table is-fullwidth">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Value</th>
-                    <th>Tags</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <form 
-                hx-trigger="load, encryptionKeyRefreshed from:body"
-                hx-swap="outerHTML" 
-                hx-get="/secrets"
-                hx-vals='{"swap-tags": "true"}'
-                hx-target="this">
-            </form>
-        </table>
+            <div class="table-container">
+                <table class="table is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Value</th>
+                            <th>Tags</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <form 
+                        hx-trigger="load, encryptionKeyRefreshed from:body"
+                        hx-swap="outerHTML" 
+                        hx-get="/secrets"
+                        hx-vals='{"swap-tags": "true"}'
+                        hx-target="this">
+                    </form>
+                </table>
+            </div>
         </div>
     </div>
 </div>

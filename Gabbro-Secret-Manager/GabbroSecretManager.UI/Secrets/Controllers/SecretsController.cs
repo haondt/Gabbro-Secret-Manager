@@ -1,14 +1,10 @@
-﻿using GabbroSecretManager.Domain.Authentication.Services;
-using GabbroSecretManager.Domain.Cryptography.Services;
-using GabbroSecretManager.Domain.Secrets.Services;
-using GabbroSecretManager.UI.Authentication.Components;
+﻿using GabbroSecretManager.Domain.Secrets.Services;
 using GabbroSecretManager.UI.Bulma.Components.Elements;
 using GabbroSecretManager.UI.Home.Components;
 using GabbroSecretManager.UI.Secrets.Components;
 using GabbroSecretManager.UI.Secrets.Models;
-using GabbroSecretManager.UI.Shared.Components;
 using GabbroSecretManager.UI.Shared.Controllers;
-using Haondt.Core.Models;
+using GabbroSecretManager.UI.Shared.Services;
 using Haondt.Web.Components;
 using Haondt.Web.Core.Extensions;
 using Haondt.Web.Core.Services;
@@ -21,9 +17,9 @@ namespace GabbroSecretManager.UI.Secrets.Controllers
     [Microsoft.AspNetCore.Mvc.Route("secrets")]
     [Authorize]
     public class SecretsController(IComponentFactory componentFactory,
-        ISessionService sessionService,
-        ISecretService secretService,
-        IEncryptionKeyCacheService keyCacheService) : UIController
+        IUISessionService sessionService,
+        ISecretService secretService
+        ) : UIController
     {
         [HttpGet("create")]
         public Task<IResult> GetCreateModal()
@@ -35,7 +31,7 @@ namespace GabbroSecretManager.UI.Secrets.Controllers
         public async Task<IResult> GetSecrets(
             [FromQuery(Name = "swap-tags")] bool swapTags)
         {
-            var result = await GetUserSessionData();
+            var result = await sessionService.GetUserSessionDataAsync(this);
             if (!result.IsSuccessful)
                 return result.Reason;
 
@@ -57,7 +53,7 @@ namespace GabbroSecretManager.UI.Secrets.Controllers
                         new TagsFilter
                         {
                             Swap = true,
-                            Tags = secrets.SelectMany(s => s.Tags).Distinct().ToList()
+                            Tags = secrets.SelectMany(s => s.Secret.Tags).Distinct().ToList()
                         }
                     }
                 }
@@ -71,7 +67,7 @@ namespace GabbroSecretManager.UI.Secrets.Controllers
             [FromQuery] List<string> tags,
             [FromQuery] string? search)
         {
-            var result = await GetUserSessionData();
+            var result = await sessionService.GetUserSessionDataAsync(this);
             if (!result.IsSuccessful)
                 return result.Reason;
 
@@ -95,34 +91,12 @@ namespace GabbroSecretManager.UI.Secrets.Controllers
             return await componentFactory.RenderComponentAsync(secretList);
         }
 
-        private async Task<Result<(string NormalizedUsername, byte[] EncryptionKey), IResult>> GetUserSessionData()
-        {
-            var normalizedUsername = await sessionService.GetNormalizedUsernameAsync();
-            if (!normalizedUsername.HasValue)
-            {
-                Response.AsResponseData()
-                    .Status(401)
-                    .Header("Hx-Redirect", "/authentication/login");
-                return new(await componentFactory.RenderComponentAsync<CloseModal>());
-            }
-
-            var encryptionKey = keyCacheService.TryGetEncryptionKey(normalizedUsername.Value);
-            if (!encryptionKey.HasValue)
-            {
-                Response.AsResponseData()
-                    .Status(401)
-                    .HxReswap("none");
-                return new(await componentFactory.RenderComponentAsync<RefreshEncryptionKeyModal>());
-            }
-
-            return new((normalizedUsername.Value, encryptionKey.Value));
-        }
 
         [HttpPost("create")]
         public async Task<IResult> CreateSecret([FromForm] UpsertSecretRequest request)
         {
 
-            var result = await GetUserSessionData();
+            var result = await sessionService.GetUserSessionDataAsync(this);
             if (!result.IsSuccessful)
                 return result.Reason;
 
@@ -130,21 +104,15 @@ namespace GabbroSecretManager.UI.Secrets.Controllers
             {
                 Comments = request.Comments ?? "",
                 Key = request.Key,
-                Tags = request.Tags,
+                Tags = request.Tags.Distinct().ToList(),
                 Value = request.Value ?? "",
             }, result.Value.NormalizedUsername, result.Value.EncryptionKey);
 
-            return await componentFactory.RenderComponentAsync(new AppendComponentLayout
+            Response.AsResponseData()
+                .HxTrigger("refreshSearchResults");
+            return await componentFactory.RenderComponentAsync(new CloseModal
             {
-                Components = new()
-                {
-                    new CloseModal(),
-                    new HxSwapOob
-                    {
-                        Content = new Home.Components.Home(),
-                        Target = "#page-container"
-                    }
-                }
+                CloseRefreshEncryptionKeyModal = false
             });
         }
     }

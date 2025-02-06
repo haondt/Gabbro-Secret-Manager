@@ -17,7 +17,5 @@ namespace GabbroSecretManager.UI.Secrets.Models
         [BindProperty(Name = "tags")]
         public List<string> Tags { get; set; } = [];
 
-        [BindProperty(Name = "is-create")]
-        public required bool IsCreate { get; set; }
     }
 }

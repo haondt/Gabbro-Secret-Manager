@@ -21,6 +21,7 @@ namespace GabbroSecretManager.UI.Shared.Extensions
             services.AddGabbroSecretManagerHeadEntries();
             services.Configure<HostSettings>(configuration.GetSection(nameof(HostSettings)));
             services.AddSingleton<IComponentFactory, ComponentFactory>();
+            services.AddScoped<IUISessionService, UISessionService>();
 
             services.AddSingleton<ISpecificExceptionActionResultFactory, PageExceptionActionResultFactory>();
             services.AddSingleton<ISpecificExceptionActionResultFactory, ToastExceptionActionResultFactory>();

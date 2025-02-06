@@ -1,7 +1,9 @@
 ﻿using GabbroSecretManager.Core.Models;
 using GabbroSecretManager.Domain.Cryptography.Services;
+using GabbroSecretManager.Domain.Secrets.Models;
 using GabbroSecretManager.Persistence.Data;
 using GabbroSecretManager.Persistence.Models;
+using Haondt.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 
@@ -11,8 +13,7 @@ namespace GabbroSecretManager.Domain.Secrets.Services
     {
         private static SecretSurrogate EncryptSecret(Secret secret, string owner, byte[] encryptionKey)
         {
-            var valueBytes = Encoding.UTF8.GetBytes(secret.Value);
-            var (encryptedValue, iv) = Crypto.AesEncrypt(valueBytes, encryptionKey);
+            var (encryptedValue, iv) = EncryptSecret(secret.Value, encryptionKey);
 
             return new()
             {
@@ -27,6 +28,12 @@ namespace GabbroSecretManager.Domain.Secrets.Services
                 }).ToList()
             };
         }
+        private static (byte[] EncryptedValue, byte[] InitializationVector) EncryptSecret(string value, byte[] encryptionKey)
+        {
+            var valueBytes = Encoding.UTF8.GetBytes(value);
+            return Crypto.AesEncrypt(valueBytes, encryptionKey);
+        }
+
         private static Secret DecryptSecret(SecretSurrogate surrogate, byte[] encryptionKey)
         {
             var valueBytes = Crypto.AesDecrypt(surrogate.EncryptedValue, encryptionKey, surrogate.InitializationVector);
@@ -48,14 +55,27 @@ namespace GabbroSecretManager.Domain.Secrets.Services
             await secretsDb.SaveChangesAsync();
             return surrogate.Id;
         }
+        public async Task DeleteSecret(long id, string owner)
+        {
+            var surrogate = await secretsDb.Secrets
+                .Where(s => s.Id == id && s.Owner == owner)
+                .FirstOrDefaultAsync();
 
-        public Task<List<Secret>> GetSecrets(string owner, byte[] encryptionKey)
+            if (surrogate == null)
+                return;
+
+            secretsDb.Secrets.Remove(surrogate);
+            await secretsDb.SaveChangesAsync();
+        }
+
+        public Task<List<(long Id, Secret Secret)>> GetSecrets(string owner, byte[] encryptionKey)
         {
             return secretsDb.Secrets
                 .Where(s => s.Owner == owner)
                 .Include(s => s.Tags)
-                .Select(s => DecryptSecret(s, encryptionKey))
-                .ToListAsync();
+                .Select(s => new { Id = s.Id, Secret = DecryptSecret(s, encryptionKey) })
+                .ToListAsync()
+                .ContinueWith(t => t.Result.Select(q => (q.Id, q.Secret)).ToList());
         }
 
         private static string EscapeLikeTerm(string s)
@@ -68,7 +88,7 @@ namespace GabbroSecretManager.Domain.Secrets.Services
                 .Replace("_", "[_]");
         }
 
-        public Task<List<Secret>> SearchSecrets(string owner, byte[] encryptionKey, string partialKey, HashSet<string>? withTags = null)
+        public Task<List<(long Id, Secret Secret)>> SearchSecrets(string owner, byte[] encryptionKey, string partialKey, HashSet<string>? withTags = null)
         {
             var search = secretsDb.Secrets
                 .Where(s => s.Owner == owner && EF.Functions.Like(s.Key, $"%{EscapeLikeTerm(partialKey)}%"));
@@ -79,8 +99,43 @@ namespace GabbroSecretManager.Domain.Secrets.Services
             search = search.Include(s => s.Tags);
 
             return search
-                .Select(s => DecryptSecret(s, encryptionKey))
-                .ToListAsync();
+                .Select(s => new { Id = s.Id, Secret = DecryptSecret(s, encryptionKey) })
+                .ToListAsync()
+                .ContinueWith(t => t.Result.Select(q => (q.Id, q.Secret)).ToList());
+        }
+
+        public async Task<Optional<Secret>> TryGetSecretAsync(long id, string owner, byte[] encryptionKey)
+        {
+            var surrogate = await secretsDb.Secrets
+                .Where(s => s.Id == id && s.Owner == owner)
+                .Include(s => s.Tags)
+                .FirstOrDefaultAsync();
+
+            if (surrogate == null)
+                return new();
+
+            return DecryptSecret(surrogate, encryptionKey);
+        }
+        public async Task<Result> TryUpdateSecretAsync(long id, SecretUpdateDetails secret, string owner, byte[] encryptionKey)
+        {
+            var surrogate = await secretsDb.Secrets
+                .Where(s => s.Id == id && s.Owner == owner)
+                .Include(s => s.Tags)
+                .FirstOrDefaultAsync();
+
+            if (surrogate == null)
+                return Result.Fail();
+
+            var (encryptedValue, iv) = EncryptSecret(secret.Value, encryptionKey);
+
+            surrogate.Key = secret.Key;
+            surrogate.EncryptedValue = encryptedValue;
+            surrogate.InitializationVector = iv;
+            surrogate.Comments = secret.Comments;
+            surrogate.Tags = secret.Tags.Select(t => new TagSurrogate { Tag = t }).ToList();
+
+            await secretsDb.SaveChangesAsync();
+            return Result.Succeed();
         }
     }
 }

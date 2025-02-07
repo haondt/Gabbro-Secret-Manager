@@ -1,4 +1,6 @@
-﻿using GabbroSecretManager.Domain.Authentication.Services;
+﻿using GabbroSecretManager.Domain.Api.Models;
+using GabbroSecretManager.Domain.Api.Services;
+using GabbroSecretManager.Domain.Authentication.Services;
 using GabbroSecretManager.Domain.Cryptography.Models;
 using GabbroSecretManager.Domain.Cryptography.Services;
 using GabbroSecretManager.Domain.Secrets.Services;
@@ -22,6 +24,14 @@ namespace GabbroSecretManager.Domain.Shared.Extensions
 
             services.AddSingleton<IEncryptionKeyCacheService, EncryptionKeyCacheService>();
             services.Configure<EncryptionKeyCacheSettings>(configuration.GetSection(nameof(EncryptionKeyCacheSettings)));
+
+            services.Configure<JweSettings>(configuration.GetSection(nameof(JweSettings)));
+            JweSettings.Validate(services.AddOptions<JweSettings>()).ValidateOnStart();
+            services.AddSingleton<IJweService, JweService>();
+            services.AddScoped<IApiKeyService, ApiKeyService>();
+            services.AddSingleton(typeof(ISingleUseCacheService<>), typeof(SingleUseCacheService<>));
+
+
 
             return services;
         }

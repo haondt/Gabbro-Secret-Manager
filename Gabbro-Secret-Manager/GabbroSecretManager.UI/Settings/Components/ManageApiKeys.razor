@@ -1,0 +1,6 @@
+@code {
+    [Parameter, EditorRequired]
+    public required string NormalizedUsername { get; set; }
+}
+<p class="title">API Keys</p>
+<ManageApiKeysBody NormalizedUsername="@NormalizedUsername" />

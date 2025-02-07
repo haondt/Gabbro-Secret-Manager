@@ -1,7 +1,9 @@
-﻿using GabbroSecretManager.Domain.Authentication.Models;
+﻿using GabbroSecretManager.Core.Models;
+using GabbroSecretManager.Domain.Authentication.Models;
 using GabbroSecretManager.Domain.Cryptography.Models;
 using GabbroSecretManager.Domain.Cryptography.Services;
 using GabbroSecretManager.Persistence.Models;
+using Haondt.Core.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace GabbroSecretManager.Domain.Authentication.Services
@@ -16,7 +18,7 @@ namespace GabbroSecretManager.Domain.Authentication.Services
         {
             var normalizedUsername = await sessionService.GetNormalizedUsernameAsync();
             if (normalizedUsername.HasValue)
-                keyCacheService.ClearEncryptionKey(normalizedUsername.Value);
+                keyCacheService.ClearCachedEncryptionKey(normalizedUsername.Value);
 
             await signInManager.SignOutAsync();
         }
@@ -40,7 +42,7 @@ namespace GabbroSecretManager.Domain.Authentication.Services
                     Errors = ["Incorrect username or password."]
                 };
 
-            keyCacheService.CreateEncryptionKey(userData.NormalizedUsername, password, userData.EncryptionKeySettings);
+            keyCacheService.GenerateAndCacheEncryptionKey(userData.NormalizedUsername, password, userData.EncryptionKeySettings);
             return new() { Success = true };
         }
 
@@ -70,8 +72,25 @@ namespace GabbroSecretManager.Domain.Authentication.Services
                     IncorrectPassword = true,
                 };
 
-            keyCacheService.CreateEncryptionKey(userData.NormalizedUsername, password, userData.EncryptionKeySettings);
+            keyCacheService.GenerateAndCacheEncryptionKey(userData.NormalizedUsername, password, userData.EncryptionKeySettings);
             return new() { Success = true };
+        }
+
+        public async Task<Result<UserData, (bool FailedToGetUsername, bool IncorrectPassword)>> TryValidatePassword(string password)
+        {
+            var normalizedUsername = await sessionService.GetNormalizedUsernameAsync();
+            if (!normalizedUsername.HasValue)
+                return new((true, false));
+            var user = await userManager.FindByNameAsync(normalizedUsername.Value);
+            if (user == null)
+                return new((true, false));
+
+            var userData = user.ToUserData();
+            var result = await signInManager.CheckPasswordSignInAsync(user, password, false);
+            if (!result.Succeeded)
+                return new((false, true));
+
+            return new(userData);
         }
 
         public async Task<RegisterUserResult> TryRegister(string username, string password)

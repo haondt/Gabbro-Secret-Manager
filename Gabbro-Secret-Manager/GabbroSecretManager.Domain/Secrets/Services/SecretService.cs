@@ -11,6 +11,7 @@ namespace GabbroSecretManager.Domain.Secrets.Services
 {
     internal class SecretService(SecretsDbContext secretsDb) : ISecretService
     {
+        public const int EXTERNAL_SECRET_LIST_VERSION = 1;
         private static SecretSurrogate EncryptSecret(Secret secret, string owner, byte[] encryptionKey)
         {
             var (encryptedValue, iv) = EncryptSecret(secret.Value, encryptionKey);
@@ -66,6 +67,11 @@ namespace GabbroSecretManager.Domain.Secrets.Services
 
             secretsDb.Secrets.Remove(surrogate);
             await secretsDb.SaveChangesAsync();
+        }
+        public Task DeleteAllSecrets(string owner)
+        {
+            return secretsDb.Secrets.Where(s => s.Owner == owner)
+                .ExecuteDeleteAsync();
         }
 
         public Task<List<(long Id, Secret Secret)>> GetSecrets(string owner, byte[] encryptionKey)
@@ -136,6 +142,41 @@ namespace GabbroSecretManager.Domain.Secrets.Services
 
             await secretsDb.SaveChangesAsync();
             return Result.Succeed();
+        }
+
+        public async Task<ExternalSecretList> ExportSecrets(string owner, byte[] encryptionKey)
+        {
+            var secrets = await GetSecrets(owner, encryptionKey);
+            return new ExternalSecretList
+            {
+                Version = EXTERNAL_SECRET_LIST_VERSION,
+                Secrets = secrets.Select(s => new ExternalSecret
+                {
+                    Comments = s.Secret.Comments,
+                    Key = s.Secret.Key,
+                    Tags = s.Secret.Tags,
+                    Value = s.Secret.Value
+                }).ToList()
+            };
+        }
+        public async Task ImportSecrets(ExternalSecretList secrets, string owner, byte[] encryptionKey)
+        {
+            if (secrets.Version != EXTERNAL_SECRET_LIST_VERSION)
+                throw new InvalidOperationException($"Cannot import secrets. Found model version {secrets.Version} but was expecting {EXTERNAL_SECRET_LIST_VERSION}.");
+
+            var decryptedSecrets = secrets.Secrets.Select(s => new Secret
+            {
+                Comments = s.Comments,
+                Key = s.Key,
+                Tags = s.Tags,
+                Value = s.Value
+            });
+
+            var encryptedSecrets = decryptedSecrets
+                .Select(s => EncryptSecret(s, owner, encryptionKey));
+
+            secretsDb.Secrets.AddRange(encryptedSecrets);
+            await secretsDb.SaveChangesAsync();
         }
     }
 }

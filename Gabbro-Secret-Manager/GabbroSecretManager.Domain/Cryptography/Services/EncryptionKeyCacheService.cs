@@ -10,7 +10,7 @@ namespace GabbroSecretManager.Domain.Cryptography.Services
         IMemoryCache memoryCache,
         IOptions<EncryptionKeyCacheSettings> options) : IEncryptionKeyCacheService
     {
-        private byte[] GenerateEncryptionKey(string normalizedUsername, string password, EncryptionKeySettings keySettings)
+        public byte[] GenerateEncryptionKey(string normalizedUsername, string password, EncryptionKeySettings keySettings)
         {
             var usernameHash = Crypto.GenerateHash(normalizedUsername);
             var passwordHash = Crypto.GenerateHash(password);
@@ -22,21 +22,21 @@ namespace GabbroSecretManager.Domain.Cryptography.Services
             return keyBytes;
         }
 
-        public Optional<byte[]> TryGetEncryptionKey(string normalizedUsername)
+        public Optional<byte[]> TryGetCachedEncryptionKey(string normalizedUsername)
         {
             if (memoryCache.TryGetValue(normalizedUsername, out var key) && key is byte[] casted)
                 return casted;
             return new();
         }
 
-        public byte[] CreateEncryptionKey(string noramlizedUsername, string password, EncryptionKeySettings keySettings)
+        public byte[] GenerateAndCacheEncryptionKey(string noramlizedUsername, string password, EncryptionKeySettings keySettings)
         {
             var encryptionKey = GenerateEncryptionKey(noramlizedUsername, password, keySettings);
             memoryCache.Set(noramlizedUsername, encryptionKey,
                 absoluteExpiration: DateTime.UtcNow.AddMinutes(options.Value.LifetimeMinutes));
             return encryptionKey;
         }
-        public void ClearEncryptionKey(string noramlizedUsername)
+        public void ClearCachedEncryptionKey(string noramlizedUsername)
         {
             memoryCache.Remove(noramlizedUsername);
         }

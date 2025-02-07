@@ -37,3 +37,14 @@
     max-height: 10rem;
     overflow:auto;
 }
+
+.field.has-addons .file .file-name {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.field.has-addons .file-cta {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+

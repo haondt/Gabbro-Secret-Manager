@@ -5,8 +5,9 @@ namespace GabbroSecretManager.Domain.Cryptography.Services
 {
     public interface IEncryptionKeyCacheService
     {
-        void ClearEncryptionKey(string noramlizedUsername);
-        byte[] CreateEncryptionKey(string noramlizedUsername, string password, EncryptionKeySettings keySettings);
-        Optional<byte[]> TryGetEncryptionKey(string normalizedUsername);
+        void ClearCachedEncryptionKey(string noramlizedUsername);
+        byte[] GenerateAndCacheEncryptionKey(string noramlizedUsername, string password, EncryptionKeySettings keySettings);
+        byte[] GenerateEncryptionKey(string normalizedUsername, string password, EncryptionKeySettings keySettings);
+        Optional<byte[]> TryGetCachedEncryptionKey(string normalizedUsername);
     }
 }

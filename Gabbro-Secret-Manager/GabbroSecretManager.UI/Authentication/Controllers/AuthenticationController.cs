@@ -3,6 +3,7 @@ using GabbroSecretManager.UI.Authentication.Components;
 using GabbroSecretManager.UI.Bulma.Components.Elements;
 using GabbroSecretManager.UI.Shared.Components;
 using GabbroSecretManager.UI.Shared.Controllers;
+using GabbroSecretManager.UI.Shared.Services;
 using Haondt.Web.BulmaCSS.Services;
 using Haondt.Web.Components;
 using Haondt.Web.Core.Extensions;
@@ -13,7 +14,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace GabbroSecretManager.UI.Authentication.Controllers
 {
     [Route("authentication")]
-    public class AuthenticationController(IComponentFactory componentFactory, IUserService userService) : UIController
+    public class AuthenticationController(
+        IUISessionService sessionService,
+        IComponentFactory componentFactory, IUserService userService) : UIController
     {
         [HttpGet("login")]
         public Task<IResult> GetLogin()
@@ -120,11 +123,9 @@ namespace GabbroSecretManager.UI.Authentication.Controllers
         }
 
         [HttpPost("sign-out")]
-        public async Task<IResult> AuthenticationSignOut()
+        public Task<IResult> AuthenticationSignOut()
         {
-            await userService.SignOutAsync();
-            Response.AsResponseData().Header("HX-Redirect", "/authentication/login");
-            return Results.Ok();
+            return sessionService.AuthenticationSignOut(this);
         }
 
         [HttpGet("refresh")]
@@ -148,7 +149,7 @@ namespace GabbroSecretManager.UI.Authentication.Controllers
             }
 
             if (result.FailedToGetUsername)
-                return await AuthenticationSignOut();
+                return await sessionService.AuthenticationSignOut(this);
 
             var error = result.IncorrectPassword
                 ? "Password incorrect."

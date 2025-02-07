@@ -14,6 +14,9 @@ namespace GabbroSecretManager.Persistence.Extensions
 
             var db2 = scope.ServiceProvider.GetRequiredService<SecretsDbContext>();
             db2.Database.Migrate();
+
+            var db3 = scope.ServiceProvider.GetRequiredService<ApiKeyDbContext>();
+            db3.Database.Migrate();
         }
     }
 }

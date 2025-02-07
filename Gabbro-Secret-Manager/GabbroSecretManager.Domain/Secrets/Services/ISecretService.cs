@@ -8,6 +8,7 @@ namespace GabbroSecretManager.Domain.Secrets.Services
     {
         Task<long> CreateSecret(Secret secret, string owner, byte[] encryptionKey);
         Task DeleteSecret(long id, string owner);
+        Task DeleteAllSecrets(string owner);
         Task<List<(long Id, Secret Secret)>> GetSecrets(string owner, byte[] encryptionKey);
         Task<Optional<Secret>> TryGetSecretAsync(long id, string owner, byte[] encryptionKey);
         Task<List<(long Id, Secret Secret)>> SearchSecrets(
@@ -16,5 +17,7 @@ namespace GabbroSecretManager.Domain.Secrets.Services
             string partialKey,
             HashSet<string>? withTags = null);
         Task<Result> TryUpdateSecretAsync(long id, SecretUpdateDetails secret, string owner, byte[] encryptionKey);
+        Task ImportSecrets(ExternalSecretList secrets, string owner, byte[] encryptionKey);
+        Task<ExternalSecretList> ExportSecrets(string owner, byte[] encryptionKey);
     }
 }

@@ -10,7 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GabbroSecretManager.UI.Shared.Services
 {
-    internal class UISessionService(ISessionService sessionService,
+    internal class UISessionService(
+        IUserService userService,
+        ISessionService sessionService,
         IComponentFactory componentFactory,
         IEncryptionKeyCacheService keyCacheService) : IUISessionService
     {
@@ -25,7 +27,7 @@ namespace GabbroSecretManager.UI.Shared.Services
                 return new(await componentFactory.RenderComponentAsync<CloseModal>());
             }
 
-            var encryptionKey = keyCacheService.TryGetEncryptionKey(normalizedUsername.Value);
+            var encryptionKey = keyCacheService.TryGetCachedEncryptionKey(normalizedUsername.Value);
             if (!encryptionKey.HasValue)
             {
                 controller.Response.AsResponseData()
@@ -35,6 +37,26 @@ namespace GabbroSecretManager.UI.Shared.Services
             }
 
             return new((normalizedUsername.Value, encryptionKey.Value));
+        }
+        public async Task<Result<string, IResult>> GetNormalizedUsernameAsync(ControllerBase controller)
+        {
+            var normalizedUsername = await sessionService.GetNormalizedUsernameAsync();
+            if (!normalizedUsername.HasValue)
+            {
+                controller.Response.AsResponseData()
+                    .Status(401)
+                    .Header("Hx-Redirect", "/authentication/login");
+                return new(await componentFactory.RenderComponentAsync<CloseModal>());
+            }
+
+            return new(normalizedUsername.Value);
+        }
+
+        public async Task<IResult> AuthenticationSignOut(ControllerBase controller)
+        {
+            await userService.SignOutAsync();
+            controller.Response.AsResponseData().Header("HX-Redirect", "/authentication/login");
+            return Results.Ok();
         }
     }
 }

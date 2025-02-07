@@ -58,7 +58,8 @@ namespace GabbroSecretManager.UI.Shared.Extensions
                     ""responseHandling"": [
                         { ""code"": ""204"", ""swap"": false },
                         { ""code"": "".*"", ""swap"": true }
-                    ]
+                    ],
+                    ""scrollIntoViewOnBoost"": false
                 }",
             });
             services.AddScoped<IHeadEntryDescriptor>(_ => new StyleSheetDescriptor

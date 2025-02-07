@@ -27,6 +27,8 @@ namespace GabbroSecretManager.Persistence.Extensions
                 o.UseSqlite(connectionString));
             services.AddDbContext<SecretsDbContext>(o =>
                 o.UseSqlite(connectionString));
+            services.AddDbContext<ApiKeyDbContext>(o =>
+                o.UseSqlite(connectionString));
             services.AddDefaultIdentity<UserDataSurrogate>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             return services;

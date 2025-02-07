@@ -23,11 +23,11 @@ namespace GabbroSecretManager.UI.Secrets.Controllers
         [HttpDelete("{id}")]
         public async Task<IResult> DeleteSecret(long id)
         {
-            var result = await sessionService.GetUserSessionDataAsync(this);
+            var result = await sessionService.GetNormalizedUsernameAsync(this);
             if (!result.IsSuccessful)
                 return result.Reason;
 
-            await secretService.DeleteSecret(id, result.Value.NormalizedUsername);
+            await secretService.DeleteSecret(id, result.Value);
             return Results.NoContent();
         }
 

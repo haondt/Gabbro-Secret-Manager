@@ -11,6 +11,6 @@ tasks:
         has_tag: true
         tag_source: latest
     context: Gabbro-Secret-Manager
-    file: Gabbro-Secret-Manager/GabbroSecretManager/Dockerfile
+    file: Gabbro-Secret-Manager/GabbroSecretManager/Dockerfile.arm64
     registries:
       - gitlab

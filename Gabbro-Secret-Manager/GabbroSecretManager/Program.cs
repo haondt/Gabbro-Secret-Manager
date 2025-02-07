@@ -1,3 +1,4 @@
+using GabbroSecretManager.Api.Extensions;
 using GabbroSecretManager.Domain.Shared.Extensions;
 using GabbroSecretManager.Persistence.Extensions;
 using GabbroSecretManager.UI.Shared.Extensions;
@@ -15,7 +16,8 @@ builder.Services
     .AddHaondtWebServices(builder.Configuration)
     .AddGabbroSecretManagerPersistenceServices(builder.Configuration)
     .AddGabbroSecretManagerServices(builder.Configuration)
-    .AddGabbroSecretManagerUI(builder.Configuration);
+    .AddGabbroSecretManagerUI(builder.Configuration)
+    .AddGabbroSecretManagerApi(builder.Configuration);
 
 builder.Services.AddMvc();
 builder.Services.AddServerSideBlazor();

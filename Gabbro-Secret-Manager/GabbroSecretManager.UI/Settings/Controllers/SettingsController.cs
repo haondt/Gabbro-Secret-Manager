@@ -23,7 +23,6 @@ namespace GabbroSecretManager.UI.Settings.Controllers
     [Authorize]
     public class SettingsController(
         IUISessionService sessionService,
-        ISessionService internalSessionService,
         IEncryptionKeyCacheService keyCacheService,
         ISingleUseCacheService<(string NormalizedUsername, ExternalSecretList Secrets)> singleUseCache,
         ISecretService secretService,

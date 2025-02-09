@@ -2,7 +2,7 @@ tasks:
   - type: docker-build
     image: gsm
     platforms:
-      - linux/amd64
+      - linux/arm64
     auto:
       - source: push
         has_tag: true

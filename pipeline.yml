@@ -3,6 +3,7 @@ tasks:
     image: gsm
     platforms:
       - linux/arm64
+      - linux/amd64
     auto:
       - source: push
         has_tag: true

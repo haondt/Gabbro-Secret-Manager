@@ -10,6 +10,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["GabbroSecretManager/GabbroSecretManager.csproj", "GabbroSecretManager/"]
 COPY ["nuget.config", "."]
+RUN dotnet workload restore
 RUN dotnet restore "./GabbroSecretManager/GabbroSecretManager.csproj"
 COPY . .
 WORKDIR "/src/GabbroSecretManager"

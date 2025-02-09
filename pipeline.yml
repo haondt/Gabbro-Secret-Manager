@@ -2,7 +2,7 @@ tasks:
   - type: docker-build
     image: gsm
     platforms:
-      - linux/arm64
+      - linux/amd64
     auto:
       - source: push
         has_tag: true
@@ -11,6 +11,6 @@ tasks:
         has_tag: true
         tag_source: latest
     context: Gabbro-Secret-Manager
-    file: Gabbro-Secret-Manager/GabbroSecretManager/Dockerfile.arm64
+    file: Gabbro-Secret-Manager/GabbroSecretManager/Dockerfile
     registries:
       - gitlab

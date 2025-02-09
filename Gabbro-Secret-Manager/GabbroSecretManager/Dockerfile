@@ -9,6 +9,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["GabbroSecretManager/GabbroSecretManager.csproj", "GabbroSecretManager/"]
+COPY ["nuget.config", "."]
 RUN dotnet restore "./GabbroSecretManager/GabbroSecretManager.csproj"
 COPY . .
 WORKDIR "/src/GabbroSecretManager"
@@ -22,3 +23,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "GabbroSecretManager.dll"]
+

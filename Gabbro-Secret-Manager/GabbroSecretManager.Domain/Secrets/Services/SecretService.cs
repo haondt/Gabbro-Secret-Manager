@@ -96,7 +96,6 @@ namespace GabbroSecretManager.Domain.Secrets.Services
 
         public Task<List<(long Id, Secret Secret)>> SearchSecrets(string owner, byte[] encryptionKey, string partialKey, HashSet<string>? withTags = null)
         {
-            Console.WriteLine($"%{EscapeLikeTerm(partialKey)}%");
             var search = secretsDb.Secrets
                 .Where(s => s.Owner == owner && EF.Functions.Like(s.Key, $"%{EscapeLikeTerm(partialKey)}%", "\\"));
 

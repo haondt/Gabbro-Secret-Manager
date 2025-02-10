@@ -89,15 +89,16 @@ namespace GabbroSecretManager.Domain.Secrets.Services
             return s
                 .Replace("[", "\\[")
                 .Replace("]", "\\]")
-                .Replace("\\", "[\\]")
-                .Replace("%", "[%]")
-                .Replace("_", "[_]");
+                .Replace("\\", "\\\\")
+                .Replace("%", "\\%")
+                .Replace("_", "\\_");
         }
 
         public Task<List<(long Id, Secret Secret)>> SearchSecrets(string owner, byte[] encryptionKey, string partialKey, HashSet<string>? withTags = null)
         {
+            Console.WriteLine($"%{EscapeLikeTerm(partialKey)}%");
             var search = secretsDb.Secrets
-                .Where(s => s.Owner == owner && EF.Functions.Like(s.Key, $"%{EscapeLikeTerm(partialKey)}%"));
+                .Where(s => s.Owner == owner && EF.Functions.Like(s.Key, $"%{EscapeLikeTerm(partialKey)}%", "\\"));
 
             if (withTags != null)
                 search = search.Where(s => s.Tags.Select(t => t.Tag).Intersect(withTags).Count() == withTags.Count);

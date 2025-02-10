@@ -1,6 +1,7 @@
 ﻿using GabbroSecretManager.Api.Filters;
 using GabbroSecretManager.Api.Models;
 using GabbroSecretManager.Api.Services;
+using GabbroSecretManager.Core.Models;
 using GabbroSecretManager.Domain.Secrets.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,11 +32,19 @@ namespace GabbroSecretManager.Api.Controllers
         public async Task<IActionResult> SearchSecrets([FromQuery] string? name, [FromQuery] List<string> tags)
         {
             var (normalizedUsername, encryptionKey) = await sessionService.GetUserDataAsync();
-            var secrets = await secretService.SearchSecrets(
-                normalizedUsername,
-                encryptionKey,
-                name ?? "",
-                tags.Count > 0 ? [.. tags] : null);
+            List<(long Id, Secret Secret)> secrets;
+            if (string.IsNullOrEmpty(name))
+                secrets = await secretService.SearchSecrets(
+                    normalizedUsername,
+                    encryptionKey,
+                    "",
+                    tags.Count > 0 ? [.. tags] : null);
+            else
+                secrets = await secretService.SearchSecretsWithExactKey(
+                    normalizedUsername,
+                    encryptionKey,
+                    name,
+                    tags.Count > 0 ? [.. tags] : null);
 
             return new OkObjectResult(secrets.Select(s => ApiSecret.FromSecret(s.Secret)).ToList());
         }

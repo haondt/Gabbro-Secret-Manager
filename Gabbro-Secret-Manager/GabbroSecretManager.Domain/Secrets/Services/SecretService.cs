@@ -110,6 +110,22 @@ namespace GabbroSecretManager.Domain.Secrets.Services
                 .ContinueWith(t => t.Result.Select(q => (q.Id, q.Secret)).ToList());
         }
 
+        public Task<List<(long Id, Secret Secret)>> SearchSecretsWithExactKey(string owner, byte[] encryptionKey, string key, HashSet<string>? withTags = null)
+        {
+            var search = secretsDb.Secrets
+                .Where(s => s.Owner == owner && s.Key == key);
+
+            if (withTags != null)
+                search = search.Where(s => s.Tags.Select(t => t.Tag).Intersect(withTags).Count() == withTags.Count);
+
+            search = search.Include(s => s.Tags);
+
+            return search
+                .Select(s => new { Id = s.Id, Secret = DecryptSecret(s, encryptionKey) })
+                .ToListAsync()
+                .ContinueWith(t => t.Result.Select(q => (q.Id, q.Secret)).ToList());
+        }
+
         public async Task<Optional<Secret>> TryGetSecretAsync(long id, string owner, byte[] encryptionKey)
         {
             var surrogate = await secretsDb.Secrets

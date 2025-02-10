@@ -19,5 +19,6 @@ namespace GabbroSecretManager.Domain.Secrets.Services
         Task<Result> TryUpdateSecretAsync(long id, SecretUpdateDetails secret, string owner, byte[] encryptionKey);
         Task ImportSecrets(ExternalSecretList secrets, string owner, byte[] encryptionKey);
         Task<ExternalSecretList> ExportSecrets(string owner, byte[] encryptionKey);
+        Task<List<(long Id, Secret Secret)>> SearchSecretsWithExactKey(string owner, byte[] encryptionKey, string key, HashSet<string>? withTags = null);
     }
 }

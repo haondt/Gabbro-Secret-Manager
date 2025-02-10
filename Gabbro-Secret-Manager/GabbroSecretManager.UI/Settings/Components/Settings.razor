@@ -1,0 +1,88 @@
+@using GabbroSecretManager.Core.Models
+@using GabbroSecretManager.Domain.Authentication.Services
+@using GabbroSecretManager.Domain.Secrets.Services
+@using Haondt.Web.Components
+@using Haondt.Web.Core.Extensions
+@attribute [RenderPage]
+
+@code {
+    [Parameter, EditorRequired]
+    public required string NormalizedUsername { get; set; }
+}
+
+<div _="on load send OnNavigate(value:'Settings') to #navbar then remove me"></div>
+
+<div class="p-3 is-flex is-justify-content-center">
+    <div class="is-flex-grow-1" style="max-width:1200px;">
+        <div class="columns">
+            <div class="column is-narrow">
+                <div class="box">
+                        <aside class="menu" >
+                            <ul 
+                                _="on setActive
+                                    if :active is not null remove .is-active from :active end
+                                    set :active to the event's detail.value
+                                    add .is-active to :active
+                                "
+                                class="menu-list">
+                                <li>
+                                    <a 
+                                        class="icon-text" 
+                                        _="
+                                            on load send setActive(value: me) to the closest <ul/> end
+                                            on click send setActive(value: me) to the closest <ul/>
+                                                add .is-hidden to #manage-data-container
+                                                remove .is-hidden from #manage-api-keys-container
+                                        ">
+                                        <span class="icon">
+                                            <i class="fas fa-key"></i>
+                                        </span>
+                                        <span>API keys</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a 
+                                        class="icon-text" 
+                                        _="
+                                            on click send setActive(value: me) to the closest <ul/>
+                                                add .is-hidden to #manage-api-keys-container
+                                                remove .is-hidden from #manage-data-container
+                                        ">
+                                        <span class="icon">
+                                            <i class="fas fa-bars-staggered"></i>
+                                        </span>
+                                        <span>Manage data</span>
+                                    </a>
+                                </li>
+                            </ul>
+                            <hr class="mt-2 mb-2"/>
+                            <ul class="menu-list">
+                                <li>
+                                    <a class="icon-text"
+                                        hx-post="/authentication/sign-out">
+                                        <span class="icon">
+                                            <i class="fas fa-right-from-bracket"></i>
+                                        </span>
+                                        <span>Sign out</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </aside>
+                </div>
+            </div>
+
+            <div class="column">
+                <div class="card">
+                    <div class="card-content">
+                        <div id="manage-api-keys-container">
+                            <ManageApiKeys NormalizedUsername="@NormalizedUsername"  />
+                        </div>
+                        <div id="manage-data-container" class="is-hidden">
+                            <ManageData />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

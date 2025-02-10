@@ -1,0 +1,113 @@
+@using GabbroSecretManager.Domain.Api.Services
+@inject IApiKeyService ApiKeyService
+
+@code {
+    [Parameter]
+    public Optional<(string Id, string Name, string Value)> NewApiKey { get; set; } = new();
+
+    [Parameter, EditorRequired]
+    public required string NormalizedUsername { get; set; }
+
+    [Parameter]
+    public bool Swap { get; set; } = false;
+
+    private Dictionary<string, object> _attributes = new();
+
+    private List<(string Id, string Name)> _apiKeys = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Swap)
+            _attributes["hx-swap-oob"] = "true";
+
+        var apiKeys = await ApiKeyService.GetApiKeys(NormalizedUsername);
+        _apiKeys = (NewApiKey.HasValue
+            ? apiKeys.Where(q => q.Id != NewApiKey.Value.Id)
+            : apiKeys)
+                .Select(q => (q.Id, q.Name))
+                .ToList();
+    }
+
+}
+<div id="manage-api-keys-body" @attributes=_attributes>
+    <form 
+        hx-post="settings/api-keys/create"
+        hx-swap="none"
+        class="block">
+        <div class="field has-addons">
+            <p class="control is-expanded">
+                <input name="name" class="input" type="text" placeholder="name" />
+            </p>
+            <p class="control">
+                <button class="button is-primary is-dark">
+                    Create API key 
+                </button>
+            </p>
+        </div>
+    </form>
+
+    @if(NewApiKey.HasValue){
+
+    <article class="message is-dark">
+        <div class="message-header has-text-success">
+            <p>Api Key <strong>@NewApiKey.Value.Name</strong> created.</p>
+        </div>
+        <div class="message-body">
+            <p>
+                Be sure to copy it as this is the only time you will be able to see it.
+            </p>
+            <br/>
+            <div class="is-flex gap-2">
+                <div class="secret-list-value has-background-black-bis" style="width:100%;overflow-wrap:anywhere;">
+                    @NewApiKey.Value.Value
+                </div>
+                <button
+                    _="on click
+                        writeText('@NewApiKey.Value.Value.Replace("'", "\\'")') into the navigator's clipboard
+                        set target to the first <i/> in me
+                        add .is-primary to me
+                        remove .fa-copy from target
+                        add .fa-check to target
+                        wait 1.3s
+                        remove .is-primary from me
+                        remove .fa-check from target
+                        add .fa-copy to target
+                    "
+                    class="button is-dark is-small">
+                    <span class="icon is-small">
+                        <i class="fas fa-copy"></i>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </article>
+    }
+
+    <table class="table is-fullwidth">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th style="width:0;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var apiKey in _apiKeys)
+            {
+                <tr>
+                    <td>@apiKey.Name</td>
+                    <td>
+                        <button 
+                            hx-delete="/settings/api-key/@apiKey.Id"
+                            hx-confirm="Are you sure you want to delete api key @apiKey.Name ?"
+                            _="on htmx:afterOnLoad
+                                if event.detail.xhr.status == 204
+                                    then remove the closest <tr/>"
+                            class="button is-danger is-dark">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

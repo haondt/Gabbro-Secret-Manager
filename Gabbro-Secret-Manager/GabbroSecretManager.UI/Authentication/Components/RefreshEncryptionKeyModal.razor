@@ -1,0 +1,49 @@
+<div 
+    id="refresh-encryption-key-modal-container"
+    style="z-index:1000;"
+    class="modal is-active is-justify-content-flex-start pt-6"
+    hx-swap-oob="true">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+        <div class="message">
+            <div class="message-header">
+                <p>Session Expired</p>
+            </div>
+            <div class="message-body">
+                <div class="control">
+                    <form
+                        hx-post="/authentication/refresh"
+                        hx-swap="none">
+                        <div class="field">
+                            <p>Please re-enter password to refresh session</p>
+                        </div>
+
+                        <!-- To make chrome DOM warnings happy -->
+                        <input class="is-hidden" autocomplete="username" type="text" name="username"  />
+
+                        <div class="field">
+                            <div class="control">
+                                <input class="input" placeholder="password" type="password" name="password" autocomplete="current-password"/>
+                            </div>
+                            <p 
+                                _="on updateErrors set my innerHTML to the event's detail.value"
+                                id="refresh-encryption-key-errors" class="help is-danger" style="white-space:pre-wrap;"></p>
+                        </div>
+
+                        <div class="field">
+                            <div class="buttons">
+                                <button class="button is-primary is-dark">Submit</button>
+                                <button 
+                                    hx-post="/authentication/sign-out"
+                                    hx-swap="none"
+                                    hx-confirm="Are you sure you want to sign out?"
+                                    class="button is-danger is-dark">Sign out</button>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

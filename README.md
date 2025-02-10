@@ -4,17 +4,16 @@ A super simple secret manager for my home server deployment automation.
 
 # Deployment
 
-Can be deployed with docker 
+Can be deployed with docker
 
 ```bash
-docker pull registry.gitlab.com/haondt/cicd/registry/gabbro-secret-manager:latest
+docker pull registry.gitlab.com/haondt/cicd/registry/gsm:latest
 ```
 
 The following items must be configured:
 - `JweSettings.EncryptionKey`: 32-byte encryption key for encrypting api tokens
 - `JweSettings.SigningKey`: (optional, default can be used as well) 32-byte signing key for signing api tokens
-- `MongoDbSettings.ConnectionString`: connection string for mongo db
-- `MongoDbSettings.DatabaseName`: mongodb database to use
+- `GabbroSecretManagerPersistenceSettings.DatabasePath`: path to sqlite db
 
 See [`docker-compose.yml`](./docker-compose.yml) for an example setup.
 
@@ -22,24 +21,33 @@ See [`docker-compose.yml`](./docker-compose.yml) for an example setup.
 
 ## User accounts
 
-![image](https://github.com/haondt/Gabbro-Secret-Manager/assets/19233365/5d3c8eab-109e-4c48-ab10-5e6eeff1ae0c)
-
+<div align="center">
+    <img src="docs/login.png">
+</div>
 
 ## View, search and filter existing secrets
 
-![image](https://github.com/haondt/Gabbro-Secret-Manager/assets/19233365/0072fcf9-6cc9-4ba8-9b40-3cb1c7a909cf)
+<div align="center">
+    <img src="docs/home.png">
+</div>
 
 ## Edit / create new secrets
 
-![image](https://github.com/haondt/Gabbro-Secret-Manager/assets/19233365/79f4761b-2c71-422f-849a-c581432a0688)
+<div align="center">
+    <img src="docs/edit.png">
+</div>
 
 ## Create or delete api keys
 
-![image](https://github.com/haondt/Gabbro-Secret-Manager/assets/19233365/a32fc038-c2e7-4b66-90f7-452ceac4052d)
+<div align="center">
+    <img src="docs/apikeys.png">
+</div>
 
 ## Retrieve secrets via api
 
-![image](https://github.com/haondt/Gabbro-Secret-Manager/assets/19233365/28444cdc-9d57-4c05-be95-8b362110fd2a)
+<div align="center">
+    <img src="docs/api.png">
+</div>
 
 
 Details:
@@ -54,7 +62,8 @@ Endpoints:
 - `GET` - `{server-url}/api/secret/{SECRET_ID}` - returns a particular secret
 - `GET` - `{server-url}/api/export-data` - gets all user data
 
-## Export user data
+## Manage data
 
-![image](https://github.com/haondt/Gabbro-Secret-Manager/assets/19233365/ae7b7f23-81ed-404e-898f-dd1d56dea781)
-
+<div align="center">
+    <img src="docs/data.png">
+</div>

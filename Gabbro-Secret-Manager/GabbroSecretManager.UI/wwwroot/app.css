@@ -1,0 +1,54 @@
+.gap-0 { gap: 0; }
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-5 { gap: 1.25rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-7 { gap: 1.75rem; }
+.gap-8 { gap: 2rem; }
+
+.secret-list-key {
+    overflow-wrap: anywhere;
+    font-size: var(--bulma-size-normal);
+    font-family: Inconsolata, Hack, SF Mono, Roboto Mono, Source Code Pro, Ubuntu Mono, monospace;
+    background-color: hsl(var(--bulma-scheme-h),var(--bulma-scheme-s),calc(var(--bulma-background-l)));
+    border-radius: var(--bulma-radius);
+    color: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-text-l));
+    padding-left: .75em;
+    padding-right: .75em;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    white-space: pre-line;
+    border-end-start-radius: 0;
+    border-start-start-radius: 0;
+}
+
+.secret-list-value {
+    overflow-wrap: anywhere;
+    font-size: var(--bulma-size-normal);
+    font-family: Inconsolata, Hack, SF Mono, Roboto Mono, Source Code Pro, Ubuntu Mono, monospace;
+    background-color: hsl(var(--bulma-scheme-h),var(--bulma-scheme-s),calc(var(--bulma-background-l)));
+    border-radius: var(--bulma-radius);
+    color: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-text-l));
+    padding-left: .75em;
+    padding-right: .75em;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    white-space: pre-line;
+    max-height: 5rem;
+    overflow:auto;
+    border-end-start-radius: 0;
+    border-start-start-radius: 0;
+}
+
+.field.has-addons .file .file-name {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.field.has-addons .file-cta {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+

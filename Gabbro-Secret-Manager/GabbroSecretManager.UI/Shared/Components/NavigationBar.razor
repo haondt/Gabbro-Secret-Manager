@@ -1,0 +1,29 @@
+<nav class="navbar is-black" id="navbar"
+    _="on OnNavigate 
+        for anchor in .navbar-item in (the first .navbar-start in me)
+            if anchor's innerHTML == the event's detail.value
+                add .is-active to anchor
+            else
+                remove .is-active from anchor
+    ">
+    <div class="navbar-brand">
+        <div class="navbar-item">
+            <p class="title is-3">GSM</p>
+        </div>
+    </div>
+
+    <div class="navbar-menu is-active">
+        <div class="navbar-start">
+            <a
+                href="/home"
+                hx-boost="true"
+                hx-target="#page-container"
+                class="navbar-item is-tab">Home</a>
+            <a
+                href="/settings"
+                hx-boost="true"
+                hx-target="#page-container"
+                class="navbar-item is-tab">Settings</a>
+        </div>
+    </div>
+</nav>

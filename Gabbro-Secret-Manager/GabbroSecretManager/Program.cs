@@ -21,6 +21,7 @@ builder.Services
 
 builder.Services.AddMvc();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddHealthChecks();
 
 
 
@@ -29,6 +30,7 @@ var app = builder.Build();
 app.UseStaticFiles();
 app.UseAntiforgery();
 app.MapControllers();
+app.MapHealthChecks("hc");
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseMiddleware<UnmappedRouteHandlerMiddleware>();
 
